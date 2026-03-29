@@ -68,3 +68,79 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+npm install // installing all the packages which are given in the package.json in dependencies section
+npm install <package-name> // installing package new package
+npm install <package-name>@version // installing package new package with sepecific version
+npm uninstall //uninstall a existing package
+
+code snippets extension - https://github.com/r5n-labs/vscode-react-javascript-snippets/blob/HEAD/docs/Snippets.md
+
+Industry level react folder structure - https://atomicdesign.bradfrost.com/chapter-2/
+
+//Atomic design folder structure
+
+src/
+│
+├── components/
+│ ├── atoms/
+│ │ ├── Button/
+│ │ │ ├── Button.jsx
+│ │ │ ├── Button.module.css
+│ │ │ └── Button.test.js
+│ │ ├── Input/
+│ │ └── Label/
+│ │
+│ ├── molecules/
+│ │ ├── FormField/
+│ │ │ ├── FormField.jsx
+│ │ │ └── FormField.module.css
+│ │ ├── SearchBar/
+│ │ └── Card/
+│ │
+│ ├── organisms/
+│ │ ├── Header/
+│ │ │ ├── Header.jsx
+│ │ │ └── Header.module.css
+│ │ ├── ProductList/
+│ │ └── Sidebar/
+│ │
+│ ├── templates/
+│ │ ├── MainLayout/
+│ │ │ ├── MainLayout.jsx
+│ │ │ └── MainLayout.module.css
+│ │
+│ └── pages/
+│ ├── Home/
+│ │ ├── Home.jsx
+│ │ └── Home.module.css
+│ ├── Product/
+│ └── Login/
+│
+├── assets/
+│ ├── images/
+│ └── styles/
+│
+├── hooks/
+│ └── useAuth.js
+│
+├── services/
+│ └── api.js
+│
+├── utils/
+│ └── helpers.js
+│
+├── context/
+│ └── AuthContext.jsx
+│
+├── routes/
+│ └── AppRoutes.jsx
+│
+├── App.jsx
+└── index.js
+
+Atoms → Smallest UI elements (Button, Input)
+Molecules → Combination of atoms (FormField)
+Organisms → Complex UI blocks (Header, ProductList)
+Templates → Layout structure (MainLayout)
+Pages → Final screens (Home, Product)

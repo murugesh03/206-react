@@ -1,7 +1,10 @@
-import logo from './logo.svg';
-import './App.css';
-
+import { useState } from "react";
+import "./App.css";
+import Home from "./components/home";
+import logo from "./logo.svg";
 function App() {
+  const [state, setState] = useState(null);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -17,6 +20,8 @@ function App() {
         >
           Learn React
         </a>
+        <Home />
+        <button onClick={() => setState("updated")}>Update</button>
       </header>
     </div>
   );
