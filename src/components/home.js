@@ -1,9 +1,10 @@
 import { Component } from "react";
-
-export default class Home extends Component {
+import Product from "./product";
+import ProductWrapper from "./ProductWrapper";
+class Home extends Component {
   constructor(name) {
-    super();
     console.log("this is constructor");
+    super();
     this.state = {
       loading: false,
       products: [],
@@ -45,19 +46,28 @@ export default class Home extends Component {
   render() {
     console.log(
       this.state.loading,
-      this.state.products.length,
+      this.state.products,
       "this is render method"
     );
     return (
       <div>
-        <h1>Home page</h1>
+        <h1 className="text-2xl font-bold" id="home-page">
+          Home page
+        </h1>
         <p>Total Products: {this.state.totalProduct}</p>
         {this.state.loading ? (
           <p> Loading...</p>
         ) : (
-          this.state.products?.map((ele) => <p>{ele.title}</p>)
+          this.state.products?.map((ele) => (
+            <ProductWrapper key={ele.sku}>
+              <p>{ele.id}</p>
+              <Product key={ele.sku} sku={ele.sku} title={ele.title} {...ele} />
+            </ProductWrapper>
+          ))
         )}
       </div>
     );
   }
 }
+
+export default Home;
