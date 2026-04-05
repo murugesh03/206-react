@@ -1,73 +1,68 @@
-import { Component } from "react";
-import Product from "./product";
+import { useEffect, useState } from "react";
 import ProductWrapper from "./ProductWrapper";
-class Home extends Component {
-  constructor(name) {
-    console.log("this is constructor");
-    super();
-    this.state = {
-      loading: false,
-      products: [],
-      totalProduct: 0
-    };
-  }
+function Home() {
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
 
-  componentDidMount() {
-    this.setState({ loading: true });
-    console.log("this is componentDidMount");
-    fetch("https://dummyjson.com/products")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        const slicedProduct = data.products.slice(0, 10);
-        this.setState({ products: slicedProduct, loading: false });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-
-    this.interval = setInterval(() => {
-      console.log("Time running ");
-    }, 1000);
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    console.log(this.state.products.length, prevState.products.length);
-    if (prevState.products.length !== this.state.products.length) {
-      this.setState({ totalProduct: this.state.products.length });
+  const fetchAllProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("https://dummyjson.com/products");
+      const data = await response.json();
+      setProducts(data.products);
+    } catch (error) {
+      console.log(error, "this erro");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  componentWillUnmount() {
-    console.log("Component will unmount");
-    clearInterval(this.interval);
-  }
+  useEffect(() => {
+    fetchAllProducts();
+  }, []);
 
-  render() {
-    console.log(
-      this.state.loading,
-      this.state.products,
-      "this is render method"
-    );
-    return (
-      <div>
-        <h1 className="text-2xl font-bold" id="home-page">
-          Home page
-        </h1>
-        <p>Total Products: {this.state.totalProduct}</p>
-        {this.state.loading ? (
-          <p> Loading...</p>
-        ) : (
-          this.state.products?.map((ele) => (
-            <ProductWrapper key={ele.sku}>
-              <p>{ele.id}</p>
-              <Product key={ele.sku} sku={ele.sku} title={ele.title} {...ele} />
-            </ProductWrapper>
-          ))
-        )}
-      </div>
-    );
-  }
+  /*
+  Component Did mount in class component 
+  componentDidMount(){}
+
+  functional component
+  useEffect(()=>{}, []) in functional component it runs only once after the render method
+
+  componentDidUpdate in class component 
+  componentDidUpdate()
+
+  functional component
+  const name = 'sam'
+  useEffect(()=>{}, [dependency]) in functional component is run when ever the dependecies values are changed 
+
+  component will unmount in class component 
+  componentWillUnmount(){}
+
+  functional component
+  const name = 'sam'
+  useEffect(()=>{
+    return ()=> {}
+  }, [dependency]) in functional component when ever the unmounting dom elemets are called
+
+  */
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold" id="home-page">
+        Home page
+      </h1>
+      <p>Total Products: {products.length}</p>
+      {loading ? (
+        <p> Loading...</p>
+      ) : (
+        products?.map((ele) => (
+          <ProductWrapper key={ele.sku}>
+            <p>{ele.id}</p>
+          </ProductWrapper>
+        ))
+      )}
+    </div>
+  );
 }
 
 export default Home;

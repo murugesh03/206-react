@@ -9,4 +9,15 @@ const ProductWrapper = (props) => {
   );
 };
 
+export const AuthWrapper = (props) => {
+  const { children } = props;
+  console.log(children);
+  return (
+    <div>
+      <p>AuthWrapper </p>
+      {children}
+    </div>
+  );
+};
+
 export default ProductWrapper;
