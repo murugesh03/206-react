@@ -1,6 +1,10 @@
+import { useContext } from "react";
+import { CartContext } from "../../../utils/CartContext";
 import "./style.css"; // Assuming you'll create a CSS file for styles
 
 const Header = () => {
+  const { getCartCount } = useContext(CartContext);
+
   return (
     <header className="header">
       <div className="header-content">
@@ -24,7 +28,7 @@ const Header = () => {
           </ul>
         </nav>
         <div className="cart">
-          <a href="/cart">Cart (0)</a>
+          <a href="/cart">Cart ({getCartCount()})</a>
         </div>
       </div>
     </header>

@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { addNumber } from "../utils";
+import { addNumber } from "../../../utils";
 // import Product from "./Home";
 import ProductWrapper, { AuthWrapper } from "./ProductWrapper";
 class Home extends Component {

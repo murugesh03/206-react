@@ -1,0 +1,94 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import ProductCard from "../../organisms/productcard";
+
+const HomePage = () => {
+  const ref = useRef(null);
+  const inputRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+
+  const [productAdded, setProductAdded] = useState(false);
+  // const product = document.getElementById("home-page");
+  // product.innerText = "Home page";
+  const fetchAllProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("https://dummyjson.com/products");
+      const data = await response.json();
+      console.log(data);
+      setProducts(data.products);
+      productAddedSuccessfully();
+    } catch (error) {
+      console.log(error, "this erro");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const productAddedSuccessfully = useCallback(() => {
+    console.log("this is from parent");
+    // setProductAdded(true);
+    // setTimeout(() => setProductAdded(false), 2000);
+  }, []);
+  console.log("same fuction", ref.current === productAddedSuccessfully);
+  ref.current = productAddedSuccessfully;
+
+  const handleChange = (e) => {
+    console.log("recreated");
+    console.log(e.target.value);
+  };
+  console.log("handle change fuction", inputRef.current === handleChange);
+  inputRef.current = handleChange;
+  //Mounting phase
+  useEffect(() => {
+    console.log("component did mount");
+    fetchAllProducts();
+  }, []);
+
+  //unmounting phase
+  useEffect(() => {
+    return () => {
+      console.log("component will unmount");
+      clearInterval();
+    };
+  }, []);
+
+  //updating phase
+  useEffect(() => {
+    console.log("component did update", products);
+    console.log(ref.current, "ref current");
+    // const text = document.getElementById();
+    // if (ref.current) {
+    //   ref.current.innerText = `Total Products: ${products.length}`;
+    //   ref.current.addEventListener("click", () => {
+    //     console.log("Ref clicked");
+    //   });
+    // }
+  }, [products]);
+
+  return (
+    <div className="home-page">
+      <h1 className="text-2xl font-bold" id="home-page">
+        Home page
+      </h1>
+      {productAdded && <p>Product Added Successfully</p>}
+      <input value="same" onChange={handleChange} />
+      {/* <p ref={ref}></p> */}
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="products-grid">
+          {products?.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              addedSuccessfully={productAddedSuccessfully}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default HomePage;

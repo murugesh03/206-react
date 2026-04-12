@@ -1,14 +1,20 @@
-import { useState } from "react";
+import React, { useContext, useState } from "react";
+import { CartContext } from "../../../utils/CartContext";
 import "./style.css";
-
-const ProductCard = ({ product }) => {
+const ProductCard = React.memo(({ product, addedSuccessfully }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [cartValue, setCartValue] = useState(2);
+  const { addToCart } = useContext(CartContext);
 
   const handleAddToCart = () => {
-    // Simulate adding to cart
+    // Add product to cart using context
+    addToCart(product);
+    // Show visual feedback
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000); // Reset after 2 seconds
+    // Call the parent function to show success message
+    addedSuccessfully();
   };
 
   return (
@@ -66,6 +72,6 @@ const ProductCard = ({ product }) => {
       </div>
     </div>
   );
-};
+});
 
 export default ProductCard;
