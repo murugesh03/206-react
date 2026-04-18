@@ -1,29 +1,33 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
+import { useFetch } from "../../../hooks/fetch";
 import ProductCard from "../../organisms/productcard";
 
 const HomePage = () => {
   const ref = useRef(null);
   const inputRef = useRef(null);
-  const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState([]);
-
-  const [productAdded, setProductAdded] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  // const [products, setProducts] = useState([]);
+  // const [productAdded, setProductAdded] = useState(false);
+  const { data: products, loading } = useFetch(
+    "https://dummyjson.com/products"
+  );
+  console.log(products, "this is data");
   // const product = document.getElementById("home-page");
   // product.innerText = "Home page";
-  const fetchAllProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("https://dummyjson.com/products");
-      const data = await response.json();
-      console.log(data);
-      setProducts(data.products);
-      productAddedSuccessfully();
-    } catch (error) {
-      console.log(error, "this erro");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchAllProducts = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await fetch("https://dummyjson.com/products");
+  //     const data = await response.json();
+  //     console.log(data);
+  //     setProducts(data.products);
+  //     productAddedSuccessfully();
+  //   } catch (error) {
+  //     console.log(error, "this erro");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const productAddedSuccessfully = useCallback(() => {
     console.log("this is from parent");
@@ -40,10 +44,10 @@ const HomePage = () => {
   console.log("handle change fuction", inputRef.current === handleChange);
   inputRef.current = handleChange;
   //Mounting phase
-  useEffect(() => {
-    console.log("component did mount");
-    fetchAllProducts();
-  }, []);
+  // useEffect(() => {
+  //   console.log("component did mount");
+  //   fetchAllProducts();
+  // }, []);
 
   //unmounting phase
   useEffect(() => {
@@ -71,7 +75,7 @@ const HomePage = () => {
       <h1 className="text-2xl font-bold" id="home-page">
         Home page
       </h1>
-      {productAdded && <p>Product Added Successfully</p>}
+      {/* {productAdded && <p>Product Added Successfully</p>} */}
       <input value="same" onChange={handleChange} />
       {/* <p ref={ref}></p> */}
       {loading ? (
@@ -91,4 +95,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default React.memo(HomePage);

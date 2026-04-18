@@ -45,7 +45,17 @@ function Home() {
   }, [dependency]) in functional component when ever the unmounting dom elemets are called
 
   */
-
+  // const renderContent = () => {
+  //   if (loading) {
+  //     return <p> Loading...</p>;
+  //   } else {
+  //     return products?.map((ele) => (
+  //       <ProductWrapper key={ele.sku}>
+  //         <p>{ele.id}</p>
+  //       </ProductWrapper>
+  //     ));
+  //   }
+  // };
   return (
     <div>
       <h1 className="text-2xl font-bold" id="home-page">
@@ -61,6 +71,8 @@ function Home() {
           </ProductWrapper>
         ))
       )}
+
+      {/* {renderContent()} */}
     </div>
   );
 }

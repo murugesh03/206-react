@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { CartContext } from "../../../utils/CartContext";
+import { CartContext } from "../../../context/cart/CartContext";
 import "./style.css";
 const ProductCard = React.memo(({ product, addedSuccessfully }) => {
   const [isHovered, setIsHovered] = useState(false);

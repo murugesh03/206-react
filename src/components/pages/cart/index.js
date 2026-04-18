@@ -1,10 +1,12 @@
 import { useContext, useMemo } from "react";
-import { CartContext } from "../../../utils/CartContext";
+import { CartContext } from "../../../context/cart/CartContext";
+import { useCounter } from "../../../hooks/count";
 import "./style.css"; // We'll create this CSS file
 
 const Cart = (props) => {
   const { cartItems, removeFromCart, updateQuantity, getTotalPrice } =
     useContext(CartContext);
+  const { count, increment } = useCounter();
 
   const totalPrice = useMemo(
     () =>
@@ -30,6 +32,8 @@ const Cart = (props) => {
   return (
     <div className="cart-page">
       <h1>Shopping Cart</h1>
+      <p> {count}</p>
+      <button onClick={increment}>Increment</button>
       {cartItems.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (

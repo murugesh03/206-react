@@ -1,19 +1,17 @@
-import { useState } from "react";
 import "./App.css";
 import Footer from "./components/organisms/footer";
 import Header from "./components/organisms/header";
+import { CartProvider } from "./context/cart/CartContext";
+import { useCounter } from "./hooks/count";
 import RoutePage from "./routes";
-import { CartProvider } from "./utils/CartContext";
 function App() {
-  const [counter, setCounter] = useState(0);
+  const { count, increment, decrement, reset } = useCounter();
   return (
     <CartProvider>
       <div className="App">
         <Header />
-        <p>Counter: {counter}</p>
-        <button onClick={() => setCounter(counter + 1)}>
-          Increment counter
-        </button>
+        <p>Counter: {count}</p>
+        <button onClick={increment}>Increment counter</button>
         <RoutePage />
         <Footer />
       </div>
