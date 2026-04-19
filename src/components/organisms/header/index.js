@@ -1,34 +1,40 @@
 import { useContext } from "react";
+import { Link, useNavigate } from "react-router";
 import { CartContext } from "../../../context/cart/CartContext";
 import "./style.css"; // Assuming you'll create a CSS file for styles
 
 const Header = () => {
+  const navigate = useNavigate();
   const { getCartCount } = useContext(CartContext);
-
+  const handleHomePage = () => {
+    navigate("/");
+  };
   return (
     <header className="header">
       <div className="header-content">
         <div className="logo">
-          <h1>Shopping Cart</h1>
+          <h1 onClick={handleHomePage} style={{ cursor: "pointer" }}>
+            Shopping Cart
+          </h1>
         </div>
         <nav className="nav">
           <ul>
             <li>
-              <a href="/">Home</a>
+              <Link href="/">Home</Link>
             </li>
             <li>
-              <a href="/products">Products</a>
+              <Link href="/products">Products</Link>
             </li>
             <li>
-              <a href="/about">About</a>
+              <Link href="/about">About</Link>
             </li>
             <li>
-              <a href="/contact">Contact</a>
+              <Link href="/contact">Contact</Link>
             </li>
           </ul>
         </nav>
         <div className="cart">
-          <a href="/cart">Cart ({getCartCount()})</a>
+          <Link href="/cart">Cart ({getCartCount()})</Link>
         </div>
       </div>
     </header>
