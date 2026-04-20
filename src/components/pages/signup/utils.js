@@ -15,3 +15,12 @@ export const validationSchema = object({
   //   return formik.values.password === value;
   // })
 });
+
+export const userSchema = object({
+  username: string().required("Username is required"),
+  email: string().email("Invalid email address").required("Email is required"),
+  password: string()
+    .min(6, "Password must be at least 6 characters")
+    .max(100, "Password must be less than 100 characters")
+    .required("Password is required")
+});
