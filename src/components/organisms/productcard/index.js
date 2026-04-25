@@ -1,12 +1,14 @@
 import React, { useContext, useState } from "react";
+import { useNavigate } from "react-router";
 import { CartContext } from "../../../context/cart/CartContext";
 import "./style.css";
 const ProductCard = React.memo(({ product, addedSuccessfully }) => {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [cartValue, setCartValue] = useState(2);
   const { addToCart } = useContext(CartContext);
-
+  console.log(product, "this is product");
   const handleAddToCart = () => {
     // Add product to cart using context
     addToCart(product);
@@ -22,6 +24,7 @@ const ProductCard = React.memo(({ product, addedSuccessfully }) => {
       className={`product-card ${isHovered ? "hovered" : ""}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => navigate(`/product/${product.id}`)}
     >
       <div className="product-image">
         <img src={product.thumbnail} alt={product.title} />
@@ -69,6 +72,9 @@ const ProductCard = React.memo(({ product, addedSuccessfully }) => {
         >
           {addedToCart ? "Added to Cart!" : "Add to Cart"}
         </button>
+        {/* <button onClick={() => navigate(`/product/${product.id}`)}>
+          View Product
+        </button> */}
       </div>
     </div>
   );

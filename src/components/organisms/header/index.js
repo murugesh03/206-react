@@ -1,8 +1,7 @@
 import { useContext } from "react";
-import { Link, useNavigate } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { CartContext } from "../../../context/cart/CartContext";
 import "./style.css"; // Assuming you'll create a CSS file for styles
-
 const Header = () => {
   const navigate = useNavigate();
   const { getCartCount } = useContext(CartContext);
@@ -20,21 +19,33 @@ const Header = () => {
         <nav className="nav">
           <ul>
             <li>
-              <Link href="/">Home</Link>
+              <NavLink to="/">Home</NavLink>
             </li>
             <li>
-              <Link href="/products">Products</Link>
+              <NavLink to="/products">Products</NavLink>
             </li>
             <li>
-              <Link href="/about">About</Link>
+              <NavLink to="/shop">Shop</NavLink>
             </li>
             <li>
-              <Link href="/contact">Contact</Link>
+              <NavLink to="/about">About</NavLink>
+            </li>
+            <li>
+              <NavLink to="/contact">Contact</NavLink>
+            </li>
+            <li>
+              <NavLink to="/account/profile">Account</NavLink>
+            </li>
+            <li>
+              <NavLink to="/signup">Signup</NavLink>
+            </li>
+            <li>
+              <NavLink to="/login">Login</NavLink>
             </li>
           </ul>
         </nav>
         <div className="cart">
-          <Link href="/cart">Cart ({getCartCount()})</Link>
+          <NavLink to="/cart">Cart ({getCartCount()})</NavLink>
         </div>
       </div>
     </header>

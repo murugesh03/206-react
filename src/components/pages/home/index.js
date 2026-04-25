@@ -2,9 +2,14 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { useFetch } from "../../../hooks/fetch";
 import ProductCard from "../../organisms/productcard";
 
+import { useLocation } from "react-router";
+
 const HomePage = () => {
   const ref = useRef(null);
   const inputRef = useRef(null);
+  const location = useLocation();
+  const locationValues = location.state || {};
+  console.log(locationValues, "location");
   // const [loading, setLoading] = useState(false);
   // const [products, setProducts] = useState([]);
   // const [productAdded, setProductAdded] = useState(false);
