@@ -10,6 +10,11 @@ const ShopLayout = () => {
     { name: "Wearables", path: "/shop/category/wearables" }
   ];
 
+  //   // Redirect to login if not authenticated
+  //   if (!isAuthenticated) {
+  //     return <Navigate to="/login" replace />;
+  //   }
+
   return (
     <div className="shop-layout">
       <div className="shop-container">

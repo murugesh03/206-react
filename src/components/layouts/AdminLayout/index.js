@@ -2,8 +2,8 @@ import { Navigate, NavLink, Outlet } from "react-router";
 import { useAuth } from "../../../context/auth/AuthContext";
 import "./style.css";
 
-const AccountLayout = () => {
-  const { isAuthenticated, loading } = useAuth();
+const AdminLayout = () => {
+  const { isAuthenticated, user, loading } = useAuth();
 
   // Show loading state while checking authentication
   if (loading) {
@@ -19,47 +19,60 @@ const AccountLayout = () => {
     return <Navigate to="/login" replace />;
   }
 
+  // Check if user has admin role
+  if (user?.role !== "admin") {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
   return (
-    <div className="account-layout">
-      <div className="account-container">
-        <aside className="account-sidebar">
-          <h2>Account</h2>
-          <nav className="account-nav">
+    <div className="admin-layout">
+      <div className="admin-container">
+        <aside className="admin-sidebar">
+          <h2>Admin Panel</h2>
+          <nav className="admin-nav">
             <NavLink
-              to="/account/profile"
+              to="/admin/dashboard"
               className={({ isActive }) =>
                 isActive ? "nav-link active" : "nav-link"
               }
             >
-              Profile
+              Dashboard
             </NavLink>
             <NavLink
-              to="/account/settings"
+              to="/admin/products"
               className={({ isActive }) =>
                 isActive ? "nav-link active" : "nav-link"
               }
             >
-              Settings
+              Products
             </NavLink>
             <NavLink
-              to="/account/orders"
+              to="/admin/add-product"
               className={({ isActive }) =>
                 isActive ? "nav-link active" : "nav-link"
               }
             >
-              My Orders
+              Add Product
             </NavLink>
             <NavLink
-              to="/account/wishlist"
+              to="/admin/orders"
               className={({ isActive }) =>
                 isActive ? "nav-link active" : "nav-link"
               }
             >
-              Wishlist
+              Orders
+            </NavLink>
+            <NavLink
+              to="/admin/users"
+              className={({ isActive }) =>
+                isActive ? "nav-link active" : "nav-link"
+              }
+            >
+              Users
             </NavLink>
           </nav>
         </aside>
-        <main className="account-main">
+        <main className="admin-main">
           <Outlet />
         </main>
       </div>
@@ -67,4 +80,4 @@ const AccountLayout = () => {
   );
 };
 
-export default AccountLayout;
+export default AdminLayout;
