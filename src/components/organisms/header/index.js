@@ -1,20 +1,29 @@
 import { useContext } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { NavLink, useNavigate } from "react-router";
-import { useAuth } from "../../../context/auth/AuthContext";
-import { CartContext } from "../../../context/cart/CartContext";
-import "./style.css"; // Assuming you'll create a CSS file for styles
+// import { CartContext } from "../../../context/cart/CartContext";
+// import { useAuth } from "../../../hooks/auth";
+import { logout as reduxLogout } from "../../../redux/slices/auth/authSlice";
+import "./style.css";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { getCartCount } = useContext(CartContext);
-  const { isAuthenticated, user, logout } = useAuth();
-
+  // const { getCartCount } = useContext(CartContext);
+  // Get cart items from Redux store
+  const cartItems = useSelector((state) => state.cart.items);
+  const getCartCount = () =>
+    cartItems.reduce((total, item) => total + item.quantity, 0);
+  // const { isAuthenticated, user, logout } = useAuth();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const user = useSelector((state) => state.auth.user);
   const handleHomePage = () => {
     navigate("/");
   };
 
   const handleLogout = () => {
-    logout();
+    // logout();
+    dispatch(reduxLogout());
     navigate("/");
   };
 

@@ -1,11 +1,18 @@
-import { useContext, useMemo } from "react";
-import { CartContext } from "../../../context/cart/CartContext";
+import { useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+// import { CartContext } from "../../../context/cart/CartContext";
 import { useCounter } from "../../../hooks/count";
+import {
+  removeFromCart,
+  updateQuantity
+} from "../../../redux/slices/cart/cartSlice";
 import "./style.css"; // We'll create this CSS file
 
 const Cart = (props) => {
-  const { cartItems, removeFromCart, updateQuantity, getTotalPrice } =
-    useContext(CartContext);
+  // const { cartItems, removeFromCart, updateQuantity, getTotalPrice } = useContext(CartContext);
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.items);
+  const total = useSelector((state) => state.cart.total);
   const { count, increment } = useCounter();
 
   const totalPrice = useMemo(
@@ -19,14 +26,17 @@ const Cart = (props) => {
 
   const handleQuantityChange = (id, newQuantity) => {
     if (newQuantity <= 0) {
-      removeFromCart(id);
+      // removeFromCart(id);
+      dispatch(removeFromCart(id));
     } else {
-      updateQuantity(id, newQuantity);
+      // updateQuantity(id, newQuantity);
+      dispatch(updateQuantity({ id, quantity: newQuantity }));
     }
   };
 
   const handleRemoveItem = (id) => {
-    removeFromCart(id);
+    // removeFromCart(id);
+    dispatch(removeFromCart(id));
   };
 
   return (
@@ -99,7 +109,8 @@ const Cart = (props) => {
             </div>
             <div className="summary-row total">
               <span>Total Price:</span>
-              <span>${getTotalPrice().toFixed(2)}</span>
+              {/* <span>${getTotalPrice().toFixed(2)}</span> */}
+              <span>${total.toFixed(2)}</span>
             </div>
             <button className="checkout-btn">Proceed to Checkout</button>
           </div>

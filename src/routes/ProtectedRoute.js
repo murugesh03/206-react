@@ -1,11 +1,12 @@
 import React from "react";
 import { Navigate } from "react-router";
-import { useAuth } from "../context/auth/AuthContext";
+import { useSelector } from "react-redux";
+// import { useAuth } from "../hooks/auth";
 
 /**
  * ProtectedRoute Component (Enhanced version)
  * Protects routes by checking authentication status
- * Uses AuthContext for authentication state
+ * Uses Redux auth state for authentication
  * Shows loading state while checking auth
  * Redirects unauthenticated users to login page
  *
@@ -20,7 +21,10 @@ const ProtectedRoute = ({
   redirectPath = "/login",
   allowedRoles = null
 }) => {
-  const { isAuthenticated, user, loading } = useAuth();
+  // const { isAuthenticated, user, loading } = useAuth();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const user = useSelector((state) => state.auth.user);
+  const loading = useSelector((state) => state.auth.loading);
 
   // Show loading state while checking authentication
   if (loading) {

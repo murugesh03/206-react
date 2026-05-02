@@ -1,7 +1,9 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import { CartContext } from "../../../../context/cart/CartContext";
+// import { CartContext } from "../../../../context/cart/CartContext";
 import { useFetch } from "../../../../hooks/fetch";
+import { addToCart } from "../../../../redux/slices/cart/cartSlice";
 import "../shop-enhanced.css";
 
 const ProductDetail = () => {
@@ -18,7 +20,8 @@ const ProductDetail = () => {
   const { productId } = params;
   const navigate = useNavigate();
   console.log(navigate, "this is navigatet");
-  const { addToCart } = useContext(CartContext);
+  // const { addToCart } = useContext(CartContext);
+  const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
@@ -31,7 +34,8 @@ const ProductDetail = () => {
   } = useFetch(`https://dummyjson.com/products/${productId}`);
 
   const handleAddToCart = () => {
-    addToCart({ ...product, quantity });
+    // addToCart({ ...product, quantity });
+    dispatch(addToCart({ ...product, quantity }));
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };

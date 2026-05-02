@@ -1,8 +1,11 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { AuthContext } from "../auth/AuthContext";
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+  const { user } = useContext(AuthContext);
+  console.log(user, "ths is user");
   const [cartItems, setCartItems] = useState([]);
 
   // Load cart from localStorage on mount

@@ -45,7 +45,7 @@ function RoutePage() {
           index
           element={
             <ProtectedRoute
-              // allowedRoles={adminRoles}
+              allowedRoles={adminRoles}
               element={<AllProducts />}
             />
           }

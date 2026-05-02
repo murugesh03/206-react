@@ -1,17 +1,20 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
-import { CartContext } from "../../../context/cart/CartContext";
+import { addToCart } from "../../../redux/slices/cart/cartSlice";
 import "./style.css";
+
 const ProductCard = React.memo(({ product, addedSuccessfully }) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [cartValue, setCartValue] = useState(2);
-  const { addToCart } = useContext(CartContext);
+  const dispatch = useDispatch();
+  // const { addToCart } = useContext(CartContext);
   console.log(product, "this is product");
   const handleAddToCart = () => {
     // Add product to cart using context
-    addToCart(product);
+    dispatch(addToCart(product));
     // Show visual feedback
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000); // Reset after 2 seconds

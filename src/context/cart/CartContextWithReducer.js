@@ -1,13 +1,13 @@
 import { createContext, useEffect, useReducer } from "react";
 
-// Initial state
+// Initial state - End product
 const initialState = {
   cartItems: [],
   userInfo: {}
 };
 
-// Reducer function
-const cartReducer = (state, action) => {
+// Reducer function - factory
+export const cartReducer = (state, action) => {
   switch (action.type) {
     case "LOAD_CART":
       return {
@@ -77,7 +77,7 @@ export const CartProviderWithReducer = ({ children }) => {
     localStorage.setItem("cartItems", JSON.stringify(state.cartItems));
   }, [state.cartItems]);
 
-  // Action creators
+  // Action creators - distrubtures
   const addToCart = (product) => {
     dispatch({ type: "ADD_TO_CART", payload: product });
   };

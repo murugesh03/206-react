@@ -1,9 +1,13 @@
 import { Navigate, NavLink, Outlet } from "react-router";
-import { useAuth } from "../../../context/auth/AuthContext";
+import { useSelector } from "react-redux";
+// import { useAuth } from "../../../hooks/auth";
 import "./style.css";
 
 const AdminLayout = () => {
-  const { isAuthenticated, user, loading } = useAuth();
+  // const { isAuthenticated, user, loading } = useAuth();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const user = useSelector((state) => state.auth.user);
+  const loading = useSelector((state) => state.auth.loading);
 
   // Show loading state while checking authentication
   if (loading) {

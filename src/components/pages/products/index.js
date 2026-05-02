@@ -1,10 +1,12 @@
-import { useContext } from "react";
+import { useDispatch } from "react-redux";
 import "../../../components/organisms/productcard/style.css";
-import { CartContext } from "../../../context/cart/CartContext";
+// import { CartContext } from "../../../context/cart/CartContext";
+import { addToCart } from "../../../redux/slices/cart/cartSlice";
 import "./style.css";
 
 const Products = () => {
-  const { addToCart } = useContext(CartContext);
+  // const { addToCart } = useContext(CartContext);
+  const dispatch = useDispatch();
 
   const products = [
     {
@@ -72,7 +74,10 @@ const Products = () => {
 
                 <button
                   className="add-to-cart-btn"
-                  onClick={() => addToCart(product)}
+                  onClick={() => {
+                    // addToCart(product);
+                    dispatch(addToCart(product));
+                  }}
                 >
                   Add to Cart
                 </button>

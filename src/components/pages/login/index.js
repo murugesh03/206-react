@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { Navigate, useNavigate } from "react-router";
-import { useAuth } from "../../../context/auth/AuthContext";
+import { useSelector, useDispatch } from "react-redux";
+// import { useAuth } from "../../../hooks/auth";
+import { login as reduxLogin } from "../../../redux/slices/auth/authSlice";
 import "./style.css";
 
 const LoginPage = () => {
@@ -10,7 +12,9 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, login } = useAuth();
+  // const { isAuthenticated, login } = useAuth();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   // If already authenticated, redirect to account page
   if (isAuthenticated) {
@@ -45,8 +49,9 @@ const LoginPage = () => {
       // Generate a simple token (in real app, get from server)
       const token = btoa(`${email}:${password}:${Date.now()}`);
 
-      // Call login function from context
-      login(userData, token);
+      // Call login function from Redux
+      // login(userData, token);
+      dispatch(reduxLogin({ userData, token }));
 
       // Reset form and redirect
       setEmail("");
