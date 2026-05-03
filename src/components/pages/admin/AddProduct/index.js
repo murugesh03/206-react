@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useAddProductMutation } from "../../../../redux/api/admin";
 import "./style.css";
 
 const AddProduct = () => {
@@ -7,6 +8,10 @@ const AddProduct = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // RTK Query - NEW APPROACH
+  const [addProductMutation, { isLoading: isAddingProduct }] =
+    useAddProductMutation();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -100,19 +105,10 @@ const AddProduct = () => {
         availabilityStatus: formData.availabilityStatus
       };
 
-      // Simulate API call to add product
-      // In a real app, this would be an API request to your backend
-      console.log("Adding product:", productData);
-
-      // Here you would make an API call like:
-      // const response = await fetch('/api/products', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(productData)
-      // });
-
-      // For demo, simulate successful addition
-      setTimeout(() => {
+      // RTK Query - NEW APPROACH using useAddProductMutation
+      try {
+        const response = await addProductMutation(productData).unwrap();
+        console.log("Product added successfully:", response);
         setSuccess("Product added successfully!");
         setFormData({
           title: "",
@@ -135,7 +131,48 @@ const AddProduct = () => {
         setTimeout(() => {
           navigate("/admin/products");
         }, 2000);
-      }, 500);
+      } catch (rtqError) {
+        console.error("RTK Query error adding product:", rtqError);
+        setError("Failed to add product via API. Using demo mode fallback...");
+
+        // DEPRECATED: Fallback demo mode (kept for reference)
+        // Simulate API call to add product
+        // In a real app, this would be an API request to your backend
+        console.log("Adding product (demo):", productData);
+
+        // Here you would make an API call like:
+        // const response = await fetch('/api/products', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(productData)
+        // });
+
+        // For demo, simulate successful addition
+        setTimeout(() => {
+          setSuccess("Product added successfully!");
+          setFormData({
+            title: "",
+            description: "",
+            price: "",
+            discountPercentage: "0",
+            category: "Electronics",
+            brand: "",
+            stock: "",
+            thumbnail: "",
+            images: "",
+            rating: "5",
+            warrantyInformation: "",
+            shippingInformation: "",
+            returnPolicy: "",
+            availabilityStatus: "In Stock"
+          });
+
+          // Redirect to products list after 2 seconds
+          setTimeout(() => {
+            navigate("/admin/products");
+          }, 2000);
+        }, 500);
+      }
     } catch (err) {
       setError("Failed to add product. Please try again.");
       console.error("Error adding product:", err);

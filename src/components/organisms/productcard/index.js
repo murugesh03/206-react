@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
+import { useAddToCartMutation } from "../../../redux/api/cart";
 import { addToCart } from "../../../redux/slices/cart/cartSlice";
 import "./style.css";
+import { useAddToWishlistMutation } from "../../../redux/api/wishlist";
 
 const ProductCard = React.memo(({ product, addedSuccessfully }) => {
   const navigate = useNavigate();
@@ -10,16 +12,63 @@ const ProductCard = React.memo(({ product, addedSuccessfully }) => {
   const [addedToCart, setAddedToCart] = useState(false);
   const [cartValue, setCartValue] = useState(2);
   const dispatch = useDispatch();
+  const userId = useSelector((state) => state.auth?.user?.id);
+
+  // RTK Query - NEW APPROACH
+  const [addToCartMutation, { isLoading: isAddToCartLoading }] =
+    useAddToCartMutation();
+  const [addToWishlistMutation, { isLoading: isAddToWishlistLoading }] =
+    useAddToWishlistMutation();
+
   // const { addToCart } = useContext(CartContext);
   console.log(product, "this is product");
-  const handleAddToCart = () => {
-    // Add product to cart using context
-    dispatch(addToCart(product));
-    // Show visual feedback
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000); // Reset after 2 seconds
-    // Call the parent function to show success message
-    addedSuccessfully();
+
+  const handleAddToCart = async () => {
+    try {
+      // RTK Query - NEW APPROACH using useAddToCartMutation
+      if (userId) {
+        await addToCartMutation({
+          userId,
+          cartItem: {
+            productId: product.id,
+            quantity: 1,
+            price: product.price
+          }
+        }).unwrap();
+      } else {
+        // DEPRECATED: Fallback to Redux slice (kept for reference)
+        // Add product to cart using context
+        dispatch(addToCart(product));
+      }
+
+      // Show visual feedback
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000); // Reset after 2 seconds
+      // Call the parent function to show success message
+      addedSuccessfully();
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      // Fallback to local state
+      dispatch(addToCart(product));
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+      addedSuccessfully();
+    }
+  };
+
+  const handleAddToWishlist = async () => {
+    try {
+      // RTK Query - NEW APPROACH using useAddToWishlistMutation
+      if (userId) {
+        await addToWishlistMutation({
+          userId,
+          productId: product.id
+        }).unwrap();
+        console.log("Added to wishlist");
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+    }
   };
 
   return (

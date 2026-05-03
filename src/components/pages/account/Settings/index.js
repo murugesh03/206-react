@@ -1,7 +1,17 @@
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { useUpdateSettingsMutation } from "../../../../redux/api/user";
 import "../styles.css";
 
 const Settings = () => {
+  // Get userId from Redux auth state
+  const userId = useSelector((state) => state.auth?.user?.id);
+
+  // RTK Query - NEW APPROACH
+  const [updateSettingsMutation, { isLoading: isUpdatingSettings }] =
+    useUpdateSettingsMutation();
+
+  // DEPRECATED: Old local state (kept for reference)
   const [settings, setSettings] = useState({
     emailNotifications: true,
     smsNotifications: false,
@@ -9,11 +19,42 @@ const Settings = () => {
     newsletter: true
   });
 
-  const handleToggle = (key) => {
-    setSettings((prev) => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  const handleToggle = async (key) => {
+    const newSettings = {
+      ...settings,
+      [key]: !settings[key]
+    };
+    setSettings(newSettings);
+
+    // RTK Query - NEW APPROACH using useUpdateSettingsMutation
+    try {
+      if (userId) {
+        await updateSettingsMutation({
+          userId,
+          settings: newSettings
+        }).unwrap();
+        console.log("Settings updated successfully");
+      }
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      // Revert on error
+      setSettings(settings);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      // RTK Query - NEW APPROACH
+      if (userId) {
+        await updateSettingsMutation({
+          userId,
+          settings
+        }).unwrap();
+        console.log("All settings saved successfully");
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error);
+    }
   };
 
   return (
@@ -80,7 +121,13 @@ const Settings = () => {
         <button className="btn-delete-account">Delete Account</button>
       </div>
 
-      <button className="btn-save-settings">Save Settings</button>
+      <button
+        className="btn-save-settings"
+        onClick={handleSaveSettings}
+        disabled={isUpdatingSettings}
+      >
+        {isUpdatingSettings ? "Saving..." : "Save Settings"}
+      </button>
     </div>
   );
 };

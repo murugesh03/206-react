@@ -1,29 +1,43 @@
+import { useSelector } from "react-redux";
+import { useGetUserOrdersQuery } from "../../../../redux/api/orders";
 import "../styles.css";
 
 const Orders = () => {
-  const orders = [
-    {
-      id: "ORD-001",
-      date: "April 20, 2026",
-      total: "$349.99",
-      status: "Delivered",
-      items: 3
-    },
-    {
-      id: "ORD-002",
-      date: "April 15, 2026",
-      total: "$199.99",
-      status: "In Transit",
-      items: 1
-    },
-    {
-      id: "ORD-003",
-      date: "April 10, 2026",
-      total: "$799.99",
-      status: "Delivered",
-      items: 2
-    }
-  ];
+  // Get userId from Redux auth state
+  const userId = useSelector((state) => state.auth?.user?.id);
+
+  // RTK Query - NEW APPROACH
+  const {
+    data: ordersData,
+    isLoading,
+    error
+  } = useGetUserOrdersQuery(userId, { skip: !userId });
+  const orders = ordersData?.orders || [];
+
+  // DEPRECATED: Hard-coded orders (kept for reference)
+  // const orders = [
+  //   {
+  //     id: "ORD-001",
+  //     date: "April 20, 2026",
+  //     total: "$349.99",
+  //     status: "Delivered",
+  //     items: 3
+  //   },
+  //   {
+  //     id: "ORD-002",
+  //     date: "April 15, 2026",
+  //     total: "$199.99",
+  //     status: "In Transit",
+  //     items: 1
+  //   },
+  //   {
+  //     id: "ORD-003",
+  //     date: "April 10, 2026",
+  //     total: "$799.99",
+  //     status: "Delivered",
+  //     items: 2
+  //   }
+  // ];
 
   const getStatusClass = (status) => {
     return status === "Delivered"
@@ -36,6 +50,11 @@ const Orders = () => {
   return (
     <div className="page-content">
       <h1>My Orders</h1>
+
+      {isLoading && <p>Loading orders...</p>}
+      {error && (
+        <p style={{ color: "red" }}>Error loading orders: {error.message}</p>
+      )}
 
       {orders.length > 0 ? (
         <div className="orders-list">

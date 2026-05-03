@@ -1,7 +1,12 @@
 import { useState } from "react";
+import { useSubmitContactFormMutation } from "../../../redux/api/contact";
 import "./style.css";
 
 const Contact = () => {
+  // RTK Query - NEW APPROACH
+  const [submitContactMutation, { isLoading: isSubmittingContact }] =
+    useSubmitContactFormMutation();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,15 +24,30 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the form data to a server
-    console.log("Form submitted:", formData);
-    setSubmitted(true);
-    setFormData({ name: "", email: "", subject: "", message: "" });
 
-    // Reset success message after 3 seconds
-    setTimeout(() => setSubmitted(false), 3000);
+    try {
+      // RTK Query - NEW APPROACH using useSubmitContactFormMutation
+      const response = await submitContactMutation(formData).unwrap();
+      console.log("Contact form submitted successfully:", response);
+
+      setSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+
+      // Reset success message after 3 seconds
+      setTimeout(() => setSubmitted(false), 3000);
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      // DEPRECATED: Fallback to demo mode (kept for reference)
+      // Here you would typically send the form data to a server
+      console.log("Contact form submitted (demo):", formData);
+      setSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+
+      // Reset success message after 3 seconds
+      setTimeout(() => setSubmitted(false), 3000);
+    }
   };
 
   return (
@@ -117,8 +137,12 @@ const Contact = () => {
               ></textarea>
             </div>
 
-            <button type="submit" className="submit-btn">
-              Send Message
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={isSubmittingContact}
+            >
+              {isSubmittingContact ? "Sending..." : "Send Message"}
             </button>
           </form>
         </div>

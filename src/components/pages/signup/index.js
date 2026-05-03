@@ -1,10 +1,13 @@
 import { useFormik } from "formik";
+import { useNavigate } from "react-router";
 
+import { useSignupMutation } from "../../../redux/api/auth";
 import FileUpload from "../../organisms/fileupload";
 import "./style.css";
 import { validationSchema } from "./utils";
 
 const SignupPage = () => {
+  // DEPRECATED: Old form state management (kept for reference)
   // const [formData, setFormData] = useState({
   //   username: "",
   //   email: "",
@@ -55,8 +58,28 @@ const SignupPage = () => {
   };
 */
 
-  const handleSubmit = (values) => {
-    console.log(values, "this is values");
+  const navigate = useNavigate();
+
+  // RTK Query - NEW APPROACH
+  const [signupMutation, { isLoading: isSignupLoading }] = useSignupMutation();
+
+  const handleSubmit = async (values) => {
+    try {
+      console.log(values, "this is values");
+
+      // RTK Query - NEW APPROACH using useSignupMutation
+      const response = await signupMutation({
+        username: values.username,
+        email: values.email,
+        password: values.password
+      }).unwrap();
+
+      console.log("Signup successful:", response);
+      // Redirect to login page after successful signup
+      navigate("/login");
+    } catch (error) {
+      console.error("Signup error:", error);
+    }
   };
 
   const formik = useFormik({

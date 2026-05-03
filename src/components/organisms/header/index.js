@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router";
 // import { CartContext } from "../../../context/cart/CartContext";
 // import { useAuth } from "../../../hooks/auth";
@@ -27,6 +26,12 @@ const Header = () => {
     navigate("/");
   };
 
+  const dispatchFunc = (calback) => {
+    console.log("Function generated");
+    // Function implementation
+    return calback;
+  };
+  dispatchFunc(() => console.log("Function called"))();
   return (
     <header className="header">
       <div className="header-content">

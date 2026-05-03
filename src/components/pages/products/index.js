@@ -1,57 +1,35 @@
 import { useDispatch } from "react-redux";
 import "../../../components/organisms/productcard/style.css";
+// DEPRECATED: Old context API - kept for reference
 // import { CartContext } from "../../../context/cart/CartContext";
+import { useGetAllProductsQuery } from "../../../redux/api/products";
 import { addToCart } from "../../../redux/slices/cart/cartSlice";
 import "./style.css";
 
 const Products = () => {
+  // DEPRECATED: Old context API - kept for reference
   // const { addToCart } = useContext(CartContext);
   const dispatch = useDispatch();
 
-  const products = [
-    {
-      id: 1,
-      name: "Laptop",
-      price: 999.99,
-      description: "High-performance laptop with latest processors",
-      image: "laptop.jpg"
-    },
-    {
-      id: 2,
-      name: "Smartphone",
-      price: 699.99,
-      description: "Latest smartphone with advanced camera",
-      image: "phone.jpg"
-    },
-    {
-      id: 3,
-      name: "Headphones",
-      price: 199.99,
-      description: "Noise-cancelling wireless headphones",
-      image: "headphones.jpg"
-    },
-    {
-      id: 4,
-      name: "Tablet",
-      price: 499.99,
-      description: "Portable tablet for work and entertainment",
-      image: "tablet.jpg"
-    },
-    {
-      id: 5,
-      name: "Smart Watch",
-      price: 299.99,
-      description: "Feature-rich smartwatch with fitness tracking",
-      image: "watch.jpg"
-    },
-    {
-      id: 6,
-      name: "Keyboard",
-      price: 129.99,
-      description: "Mechanical gaming keyboard with RGB lighting",
-      image: "keyboard.jpg"
-    }
-  ];
+  // RTK Query - NEW APPROACH
+  const { data: productsData, isLoading, error } = useGetAllProductsQuery();
+  const products = productsData?.products || [];
+
+  // DEPRECATED: Hard-coded products (kept for reference)
+  // const products = [
+  //   {
+  //     id: 1,
+  //     name: "Laptop",
+  //     price: 999.99,
+  //     description: "High-performance laptop with latest processors",
+  //     image: "laptop.jpg"
+  //   },
+  //   ... more products
+  // ];
+  //     description: "Mechanical gaming keyboard with RGB lighting",
+  //     image: "keyboard.jpg"
+  //   }
+  // ];
 
   return (
     <div className="products-page">
@@ -59,6 +37,11 @@ const Products = () => {
         <h1>Our Products</h1>
         <p>Check out our amazing collection of tech products</p>
       </div>
+
+      {isLoading && <p>Loading products...</p>}
+      {error && (
+        <p style={{ color: "red" }}>Error loading products: {error.message}</p>
+      )}
 
       <div className="products-container">
         {products.map((product) => (

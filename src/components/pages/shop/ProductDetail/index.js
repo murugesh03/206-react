@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-// import { CartContext } from "../../../../context/cart/CartContext";
-import { useFetch } from "../../../../hooks/fetch";
+// DEPRECATED: Old custom fetch hook - kept for reference
+// import { useFetch } from "../../../../hooks/fetch";
+import { useGetProductByIdQuery } from "../../../../redux/api/products";
 import { addToCart } from "../../../../redux/slices/cart/cartSlice";
 import "../shop-enhanced.css";
 
@@ -26,12 +27,19 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  // Fetch single product from API
+  // RTK Query - NEW APPROACH using useGetProductByIdQuery
   const {
     data: product,
-    loading,
+    isLoading: loading,
     error
-  } = useFetch(`https://dummyjson.com/products/${productId}`);
+  } = useGetProductByIdQuery(productId);
+
+  // DEPRECATED: Old fetch hook (kept for reference)
+  // const {
+  //   data: product,
+  //   loading,
+  //   error
+  // } = useFetch(`https://dummyjson.com/products/${productId}`);
 
   const handleAddToCart = () => {
     // addToCart({ ...product, quantity });

@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef } from "react";
-import { useFetch } from "../../../hooks/fetch";
+// DEPRECATED: Old custom fetch hook - kept for reference
+// import { useFetch } from "../../../hooks/fetch";
+import { useGetAllProductsQuery } from "../../../redux/api/products";
 import ProductCard from "../../organisms/productcard";
 
 import { useLocation } from "react-router";
@@ -10,13 +12,22 @@ const HomePage = () => {
   const location = useLocation();
   const locationValues = location.state || {};
   console.log(locationValues, "location");
+
+  // DEPRECATED: Old state management (kept for reference)
   // const [loading, setLoading] = useState(false);
   // const [products, setProducts] = useState([]);
   // const [productAdded, setProductAdded] = useState(false);
-  const { data: products, loading } = useFetch(
-    "https://dummyjson.com/products"
-  );
-  console.log(products, "this is data");
+
+  // RTK Query - NEW APPROACH using useGetAllProductsQuery
+  const { data: productsData, isLoading: loading } = useGetAllProductsQuery();
+  const products = productsData?.products || [];
+
+  // DEPRECATED: Old fetch hook (kept for reference)
+  // const { data: products, loading } = useFetch(
+  //   "https://dummyjson.com/products"
+  // );
+
+  console.log(products, "this is data from RTK Query");
   // const product = document.getElementById("home-page");
   // product.innerText = "Home page";
   // const fetchAllProducts = async () => {

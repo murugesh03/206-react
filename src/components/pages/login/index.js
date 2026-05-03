@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate } from "react-router";
-import { useSelector, useDispatch } from "react-redux";
 // import { useAuth } from "../../../hooks/auth";
 import { login as reduxLogin } from "../../../redux/slices/auth/authSlice";
 import "./style.css";
+import { useLoginMutation } from "../../../redux/api/auth";
 
 const LoginPage = () => {
   const emailRef = useRef();
@@ -15,6 +16,9 @@ const LoginPage = () => {
   // const { isAuthenticated, login } = useAuth();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
+  // RTK Query - NEW APPROACH
+  const [loginMutation, { isLoading: isLoginLoading }] = useLoginMutation();
 
   // If already authenticated, redirect to account page
   if (isAuthenticated) {
@@ -34,34 +38,58 @@ const LoginPage = () => {
         return;
       }
 
-      // Simulate API login (replace with real API call)
-      // For demo purposes, detect admin role from email (contains "admin")
-      const isAdmin = email.toLowerCase().includes("admin");
+      // RTK Query - NEW APPROACH using useLoginMutation
+      try {
+        const response = await loginMutation({ email, password }).unwrap();
+        // Handle successful login
+        const token = response.token;
+        const userData = response.user;
+        dispatch(reduxLogin({ userData, token }));
 
-      const userData = {
-        email: email,
-        name: email.split("@")[0],
-        id: Math.random().toString(36).substr(2, 9),
-        joinDate: new Date().toLocaleDateString(),
-        role: isAdmin ? "admin" : "user"
-      };
+        // Reset form and redirect based on role
+        setEmail("");
+        setPassword("");
 
-      // Generate a simple token (in real app, get from server)
-      const token = btoa(`${email}:${password}:${Date.now()}`);
+        if (userData.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/account/profile");
+        }
+      } catch (rtqError) {
+        // Handle RTK Query error
+        console.error("RTK Query Login error:", rtqError);
+        setError("Login failed via API. Using demo mode fallback...");
 
-      // Call login function from Redux
-      // login(userData, token);
-      dispatch(reduxLogin({ userData, token }));
+        // DEPRECATED: Fallback to demo mode (kept for reference)
+        // Simulate API login (replace with real API call)
+        // For demo purposes, detect admin role from email (contains "admin")
+        const isAdmin = email.toLowerCase().includes("admin");
 
-      // Reset form and redirect
-      setEmail("");
-      setPassword("");
+        const userData = {
+          email: email,
+          name: email.split("@")[0],
+          id: Math.random().toString(36).substr(2, 9),
+          joinDate: new Date().toLocaleDateString(),
+          role: isAdmin ? "admin" : "user"
+        };
 
-      // Redirect based on role
-      if (isAdmin) {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/account/profile");
+        // Generate a simple token (in real app, get from server)
+        const token = btoa(`${email}:${password}:${Date.now()}`);
+
+        // Call login function from Redux
+        // login(userData, token);
+        dispatch(reduxLogin({ userData, token }));
+
+        // Reset form and redirect
+        setEmail("");
+        setPassword("");
+
+        // Redirect based on role
+        if (isAdmin) {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/account/profile");
+        }
       }
     } catch (err) {
       setError("Login failed. Please try again.");

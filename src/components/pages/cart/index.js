@@ -1,7 +1,14 @@
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+// DEPRECATED: Old context API - kept for reference
 // import { CartContext } from "../../../context/cart/CartContext";
 import { useCounter } from "../../../hooks/count";
+import {
+  useClearCartMutation,
+  useGetCartQuery,
+  useRemoveFromCartMutation,
+  useUpdateCartQuantityMutation
+} from "../../../redux/api/cart";
 import {
   removeFromCart,
   updateQuantity
@@ -9,11 +16,24 @@ import {
 import "./style.css"; // We'll create this CSS file
 
 const Cart = (props) => {
+  // Get userId from Redux auth state
+  const userId = useSelector((state) => state.auth?.user?.id);
+
+  // DEPRECATED: Old context API - kept for reference
   // const { cartItems, removeFromCart, updateQuantity, getTotalPrice } = useContext(CartContext);
+
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const total = useSelector((state) => state.cart.total);
   const { count, increment } = useCounter();
+
+  // RTK Query - NEW APPROACH
+  const { data: cartData, isLoading: isCartLoading } = useGetCartQuery(userId, {
+    skip: !userId
+  });
+  const [removeFromCartMutation] = useRemoveFromCartMutation();
+  const [updateCartQuantityMutation] = useUpdateCartQuantityMutation();
+  const [clearCartMutation] = useClearCartMutation();
 
   const totalPrice = useMemo(
     () =>
@@ -24,19 +44,54 @@ const Cart = (props) => {
     [cartItems]
   );
 
-  const handleQuantityChange = (id, newQuantity) => {
-    if (newQuantity <= 0) {
-      // removeFromCart(id);
-      dispatch(removeFromCart(id));
-    } else {
-      // updateQuantity(id, newQuantity);
-      dispatch(updateQuantity({ id, quantity: newQuantity }));
+  const handleQuantityChange = async (id, newQuantity) => {
+    try {
+      if (newQuantity <= 0) {
+        // RTK Query - NEW APPROACH using useRemoveFromCartMutation
+        if (userId) {
+          await removeFromCartMutation({ userId, itemId: id }).unwrap();
+        } else {
+          // DEPRECATED: Fallback to Redux slice (kept for reference)
+          dispatch(removeFromCart(id));
+        }
+      } else {
+        // RTK Query - NEW APPROACH using useUpdateCartQuantityMutation
+        if (userId) {
+          await updateCartQuantityMutation({
+            userId,
+            itemId: id,
+            quantity: newQuantity
+          }).unwrap();
+        } else {
+          // DEPRECATED: Fallback to Redux slice (kept for reference)
+          dispatch(updateQuantity({ id, quantity: newQuantity }));
+        }
+      }
+    } catch (error) {
+      console.error("Error updating cart:", error);
+      // Fallback to local state
+      if (newQuantity <= 0) {
+        dispatch(removeFromCart(id));
+      } else {
+        dispatch(updateQuantity({ id, quantity: newQuantity }));
+      }
     }
   };
 
-  const handleRemoveItem = (id) => {
-    // removeFromCart(id);
-    dispatch(removeFromCart(id));
+  const handleRemoveItem = async (id) => {
+    try {
+      // RTK Query - NEW APPROACH using useRemoveFromCartMutation
+      if (userId) {
+        await removeFromCartMutation({ userId, itemId: id }).unwrap();
+      } else {
+        // DEPRECATED: Fallback to Redux slice (kept for reference)
+        dispatch(removeFromCart(id));
+      }
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+      // Fallback to local state
+      dispatch(removeFromCart(id));
+    }
   };
 
   return (
