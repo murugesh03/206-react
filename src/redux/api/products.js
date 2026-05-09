@@ -9,6 +9,7 @@ import { externalBaseQuery } from "./config";
 export const productsApi = createApi({
   reducerPath: "productsApi",
   baseQuery: externalBaseQuery,
+  tagTypes: ["Products", "ProductsByCategory", "SearchResults"],
   endpoints: (builder) => ({
     /**
      * Get all products
@@ -16,7 +17,16 @@ export const productsApi = createApi({
      */
     getAllProducts: builder.query({
       query: () => "/products",
-      providesTags: ["Products"]
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.products.map(({ id }) => ({
+                type: "Products",
+                id
+              })),
+              { type: "Products", id: "LIST" }
+            ]
+          : [{ type: "Products", id: "LIST" }]
     }),
 
     /**
@@ -51,14 +61,65 @@ export const productsApi = createApi({
     searchProducts: builder.query({
       query: (searchQuery) => `/products/search?q=${searchQuery}`,
       providesTags: ["SearchResults"]
+    }),
+
+    /**
+     * Create a new product
+     * @param {object} productData - Product details (title, description, price, category, etc.)
+     * @returns {Promise} Created product with ID
+     */
+    createProduct: builder.mutation({
+      query: (productData) => ({
+        url: "/products/add",
+        method: "POST",
+        body: productData
+      }),
+      invalidatesTags: [{ type: "Products", id: "LIST" }]
+    }),
+
+    /**
+     * Update a product
+     * @param {object} params - productId and productData
+     * @returns {Promise} Updated product details
+     */
+    updateProduct: builder.mutation({
+      query: ({ productId, productData }) => ({
+        url: `/products/${productId}`,
+        method: "PUT",
+        body: productData
+      }),
+      invalidatesTags: (result, error, { productId }) => [
+        { type: "Products", id: "LIST" },
+        { type: "Products", id: productId }
+      ]
+    }),
+
+    /**
+     * Delete a product
+     * @param {string|number} productId - Product ID to delete
+     * @returns {Promise} Deleted product with isDeleted & deletedOn keys
+     */
+    deleteProduct: builder.mutation({
+      query: (productId) => ({
+        url: `/products/${productId}`,
+        method: "DELETE"
+      }),
+      invalidatesTags: (result, error, productId) => [
+        { type: "Products", id: "LIST" },
+        { type: "Products", id: productId }
+      ]
     })
   })
 });
 
+console.log(productsApi, "this is productsApi");
 // Export auto-generated hooks
 export const {
   useGetAllProductsQuery,
   useGetProductByIdQuery,
   useGetProductsByCategoryQuery,
-  useSearchProductsQuery
+  useSearchProductsQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation
 } = productsApi;

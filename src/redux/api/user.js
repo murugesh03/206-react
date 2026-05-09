@@ -9,6 +9,7 @@ import { baseQueryWithAuth } from "./config";
 export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: baseQueryWithAuth,
+  tagTypes: ["UserProfile", "Cart"],
   endpoints: (builder) => ({
     /**
      * Get user profile information
@@ -17,9 +18,7 @@ export const userApi = createApi({
      */
     getProfile: builder.query({
       query: (userId) => `/users/${userId}/profile`,
-      providesTags: (result, error, userId) => [
-        { type: "UserProfile", id: userId }
-      ]
+      providesTags: ["UserProfile"]
     }),
 
     /**
@@ -33,9 +32,7 @@ export const userApi = createApi({
         method: "PUT",
         body: profileData
       }),
-      invalidatesTags: (result, error, { userId }) => [
-        { type: "UserProfile", id: userId }
-      ]
+      invalidatesTags: ["UserProfile"]
     }),
 
     /**
@@ -49,9 +46,7 @@ export const userApi = createApi({
         method: "PUT",
         body: settings
       }),
-      invalidatesTags: (result, error, { userId }) => [
-        { type: "UserProfile", id: userId }
-      ]
+      invalidatesTags: ["UserProfile"]
     })
   })
 });

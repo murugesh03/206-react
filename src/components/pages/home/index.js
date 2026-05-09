@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useRef } from "react";
 // DEPRECATED: Old custom fetch hook - kept for reference
 // import { useFetch } from "../../../hooks/fetch";
-import { useGetAllProductsQuery } from "../../../redux/api/products";
+import {
+  productsApi,
+  useGetAllProductsQuery
+} from "../../../redux/api/products";
 import ProductCard from "../../organisms/productcard";
 
 import { useLocation } from "react-router";
@@ -85,7 +88,7 @@ const HomePage = () => {
     //   });
     // }
   }, [products]);
-
+  console.log(productsApi, "this is product api");
   return (
     <div className="home-page">
       <h1 className="text-2xl font-bold" id="home-page">

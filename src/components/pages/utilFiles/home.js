@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { productsApi } from "../../../redux/api/products";
 import ProductWrapper from "./ProductWrapper";
 function Home() {
   const [loading, setLoading] = useState(false);
@@ -16,7 +17,7 @@ function Home() {
       setLoading(false);
     }
   };
-
+  console.log(productsApi, "this is product api");
   useEffect(() => {
     fetchAllProducts();
   }, []);
