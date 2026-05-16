@@ -1,14 +1,14 @@
 /**
- * Authentication API - RTK Query
+ * Authentication API - RTK Query with Axios
  * Endpoints for authentication operations (login, signup, logout, token verification)
  */
 
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { baseQueryWithAuth } from "./config";
+import { axiosBaseQueryWithAuth } from "./config";
 //PUT, DELETE, POST, GET, UPDATE
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: baseQueryWithAuth,
+  baseQuery: axiosBaseQueryWithAuth,
   endpoints: (builder) => ({
     /**
      * User login

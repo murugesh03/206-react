@@ -20,9 +20,11 @@
 
 // Export configuration
 export {
+  axiosBaseQuery,
+  axiosBaseQueryWithAuth,
   BACKEND_API_BASE,
-  baseQueryWithAuth,
-  externalBaseQuery,
+  backendAxiosInstance,
+  externalAxiosInstance,
   PRODUCTS_API_BASE
 } from "./config";
 

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router";
 import AccountLayout from "../components/layouts/AccountLayout";
 import AdminLayout from "../components/layouts/AdminLayout";
@@ -10,19 +11,31 @@ import Wishlist from "../components/pages/account/Wishlist";
 import AddProduct from "../components/pages/admin/AddProduct";
 import AdminDashboard from "../components/pages/admin/Dashboard";
 import AdminOrders from "../components/pages/admin/Orders";
-import AdminProducts from "../components/pages/admin/Products";
-import AdminUsers from "../components/pages/admin/Users";
 import Cart from "../components/pages/cart";
 import Contact from "../components/pages/contact";
 import HomePage from "../components/pages/home";
 import LoginPage from "../components/pages/login";
-import Products from "../components/pages/products";
 import AllProducts from "../components/pages/shop/AllProducts";
 import Category from "../components/pages/shop/Category";
-import ProductDetail from "../components/pages/shop/ProductDetail";
 import SignupPage from "../components/pages/signup";
 import UnauthorizedPage from "../components/pages/unauthorized";
 import ProtectedRoute from "./ProtectedRoute";
+
+// DEMO: Lazy load ProductDetail with artificial 2s delay to make Suspense fallback visible
+// In production, remove the Promise wrapper: lazy(() => import("../components/pages/shop/ProductDetail"))
+const ProductDetail = lazy(() =>
+  new Promise((resolve) =>
+    setTimeout(
+      () => resolve(import("../components/pages/shop/ProductDetail")),
+      2000
+    )
+  )
+);
+
+const AdminProductsLazy = lazy(
+  () => import("../components/pages/admin/Products")
+);
+const AdminUsersLazy = lazy(() => import("../components/pages/admin/Users"));
 
 function RoutePage() {
   const adminRoles = ["admin"];
@@ -34,10 +47,26 @@ function RoutePage() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
-      <Route path="/products" element={<Products />} />
+      <Route
+        path="/products"
+        element={
+          <Suspense fallback={<div>Loading...</div>}>
+            <AllProducts />
+          </Suspense>
+        }
+      />
       <Route path="/contact" element={<Contact />} />
       <Route path="/about" element={<About />} />
-      <Route path="product/:productId" element={<ProductDetail />} />
+
+      {/* DEMO: Suspense + lazy loading — fallback shows for 2s on first visit */}
+      <Route
+        path="product/:productId"
+        element={
+          <Suspense fallback={<div className="loading-spinner">Loading product...</div>}>
+            <ProductDetail />
+          </Suspense>
+        }
+      />
 
       {/* Nested Shop Routes */}
       <Route path="/shop" element={<ShopLayout />}>
@@ -50,9 +79,6 @@ function RoutePage() {
             />
           }
         />
-        {/* <ProtectedRoute allowedRoles={adminRoles}>
-              <AllProducts />
-            </ProtectedRoute> */}
         <Route path="category/:categoryName" element={<Category />} />
       </Route>
 
@@ -67,10 +93,17 @@ function RoutePage() {
       {/* Protected Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="products" element={<AdminProducts />} />
+        <Route
+          path="products"
+          element={
+            <Suspense fallback={<div>Loading products...</div>}>
+              <AdminProductsLazy />
+            </Suspense>
+          }
+        />
         <Route path="add-product" element={<AddProduct />} />
         <Route path="orders" element={<AdminOrders />} />
-        <Route path="users" element={<AdminUsers />} />
+        <Route path="users" element={<AdminUsersLazy />} />
       </Route>
     </Routes>
   );

@@ -1,10 +1,10 @@
+import { memo } from "react";
 import {
   useGetAllOrdersQuery,
   useGetAllUsersQuery,
   useGetDashboardStatsQuery
 } from "../../../../redux/api/admin";
 import { useGetAllProductsQuery } from "../../../../redux/api/products";
-
 const AdminDashboard = () => {
   // RTK Query - NEW APPROACH
   const {
@@ -75,4 +75,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default memo(AdminDashboard);

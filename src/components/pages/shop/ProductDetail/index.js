@@ -19,6 +19,7 @@ const ProductDetail = () => {
   //   console.log(age);
   //   console.log(params, "this params");
   const { productId } = params;
+  console.log("productId route param:", productId);
   const navigate = useNavigate();
   console.log(navigate, "this is navigatet");
   // const { addToCart } = useContext(CartContext);
@@ -28,11 +29,32 @@ const ProductDetail = () => {
   const [addedToCart, setAddedToCart] = useState(false);
 
   // RTK Query - NEW APPROACH using useGetProductByIdQuery
+  // Ensure we only call the query when a valid id exists.
+  const numericId = productId ? Number(productId) : undefined;
+  console.log("useGetProductByIdQuery -> numericId:", numericId);
   const {
     data: product,
     isLoading: loading,
     error
-  } = useGetProductByIdQuery(productId);
+  } = useGetProductByIdQuery(numericId, { skip: !numericId });
+  console.log(product, "product");
+  // Debug: log RTK Query state and perform a direct fetch to verify network
+  // useEffect(() => {
+  //   console.log("RTK Query state ->", { numericId, loading, error, product });
+
+  //   if (!numericId) return;
+
+  //   (async () => {
+  //     try {
+  //       const res = await fetch(`https://dummyjson.com/products/${numericId}`);
+  //       const json = await res.json();
+  //       console.log("Direct fetch product ->", numericId, json);
+  //     } catch (err) {
+  //       console.error("Direct fetch failed ->", err);
+  //     }
+  //   })();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [numericId, loading, error]);
 
   // DEPRECATED: Old fetch hook (kept for reference)
   // const {
@@ -55,10 +77,26 @@ const ProductDetail = () => {
     }
   };
 
-  const originalPrice = product
-    ? (product.price / (1 - (product.discountPercentage || 0) / 100)).toFixed(2)
+  // NOTE: Use the defensive normalized values below (`priceNum`, `discountNum`)
+  // to compute original price and savings to avoid calling toFixed on undefined.
+
+  // Defensive numeric normalization to avoid Invalid array length or toFixed on undefined
+  const priceNum = Number(product?.price ?? 0);
+  const discountNum = Number(product?.discountPercentage ?? 0);
+  const ratingNum = Number(product?.rating ?? 0);
+  const stockNum = Number.isFinite(Number(product?.stock))
+    ? Math.floor(Number(product.stock))
     : 0;
-  const savings = product ? (originalPrice - product.price).toFixed(2) : 0;
+  const stockOptions = Math.max(0, Math.min(10, stockNum));
+  const denom = 1 - discountNum / 100;
+  const safeOriginalPrice = product
+    ? denom !== 0 && Number.isFinite(priceNum / denom)
+      ? (priceNum / denom).toFixed(2)
+      : priceNum.toFixed(2)
+    : "0.00";
+  const safeSavings = product
+    ? (Number(safeOriginalPrice) - priceNum).toFixed(2)
+    : "0.00";
 
   if (loading) {
     return (
@@ -119,9 +157,9 @@ const ProductDetail = () => {
               src={product.images?.[selectedImage] || product.thumbnail}
               alt={product.title}
             />
-            {product.discountPercentage > 0 && (
+            {discountNum > 0 && (
               <div className="discount-badge-large">
-                {product.discountPercentage.toFixed(0)}% OFF
+                {discountNum.toFixed(0)}% OFF
               </div>
             )}
           </div>
@@ -154,22 +192,24 @@ const ProductDetail = () => {
           {/* Rating */}
           <div className="rating-section">
             <div className="stars-large">
-              {"★".repeat(Math.floor(product.rating))}
-              {"☆".repeat(5 - Math.floor(product.rating))}
+              {"★".repeat(Math.max(0, Math.min(5, Math.floor(ratingNum))))}
+              {"☆".repeat(
+                Math.max(0, 5 - Math.max(0, Math.min(5, Math.floor(ratingNum))))
+              )}
             </div>
-            <span className="rating-number">{product.rating}</span>
+            <span className="rating-number">{ratingNum}</span>
             <span className="rating-text">Based on customer reviews</span>
           </div>
 
           {/* Price Section */}
           <div className="price-section-large">
-            <span className="current-price-large">
-              ${product.price.toFixed(2)}
-            </span>
-            {product.discountPercentage > 0 && (
+            <span className="current-price-large">${priceNum.toFixed(2)}</span>
+            {discountNum > 0 && (
               <>
-                <span className="original-price-large">${originalPrice}</span>
-                <span className="savings-badge">Save ${savings}</span>
+                <span className="original-price-large">
+                  ${safeOriginalPrice}
+                </span>
+                <span className="savings-badge">Save ${safeSavings}</span>
               </>
             )}
           </div>
@@ -178,14 +218,14 @@ const ProductDetail = () => {
           <div className="stock-section">
             <span
               className={`stock-badge ${
-                product.availabilityStatus === "In Stock"
+                product?.availabilityStatus === "In Stock"
                   ? "in-stock-badge"
                   : "out-of-stock-badge"
               }`}
             >
-              {product.availabilityStatus}
+              {product?.availabilityStatus ?? "Out of Stock"}
             </span>
-            <span className="stock-count">{product.stock} items available</span>
+            <span className="stock-count">{stockNum} items available</span>
           </div>
 
           {/* Description */}
@@ -226,7 +266,7 @@ const ProductDetail = () => {
                 onChange={handleQuantityChange}
                 disabled={product.availabilityStatus !== "In Stock"}
               >
-                {[...Array(Math.min(product.stock, 10))].map((_, i) => (
+                {Array.from({ length: stockOptions }).map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {i + 1}
                   </option>

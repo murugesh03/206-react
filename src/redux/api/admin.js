@@ -12,11 +12,11 @@ CUD = we should builder.mutation we are going to make some changes in the inform
 R = We are just getting the inforamation and show the detaisl we can use builder.query
 */
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { baseQueryWithAuth } from "./config";
+import { axiosBaseQueryWithAuth } from "./config";
 
 export const adminApi = createApi({
   reducerPath: "adminApi",
-  baseQuery: baseQueryWithAuth,
+  baseQuery: axiosBaseQueryWithAuth,
   endpoints: (builder) => {
     return {
       /**

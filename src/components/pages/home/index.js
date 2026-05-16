@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
 // DEPRECATED: Old custom fetch hook - kept for reference
 // import { useFetch } from "../../../hooks/fetch";
 import {
@@ -22,8 +23,16 @@ const HomePage = () => {
   // const [productAdded, setProductAdded] = useState(false);
 
   // RTK Query - NEW APPROACH using useGetAllProductsQuery
-  const { data: productsData, isLoading: loading } = useGetAllProductsQuery();
+  const {
+    data: productsData,
+    isLoading: loading,
+    isError,
+    error,
+    refetch
+  } = useGetAllProductsQuery();
   const products = productsData?.products || [];
+  const [directFetchCount, setDirectFetchCount] = useState(null);
+  const [directProducts, setDirectProducts] = useState([]);
 
   // DEPRECATED: Old fetch hook (kept for reference)
   // const { data: products, loading } = useFetch(
@@ -31,6 +40,7 @@ const HomePage = () => {
   // );
 
   console.log(products, "this is data from RTK Query");
+  console.log("productsData raw:", productsData);
   // const product = document.getElementById("home-page");
   // product.innerText = "Home page";
   // const fetchAllProducts = async () => {
@@ -47,6 +57,8 @@ const HomePage = () => {
   //     setLoading(false);
   //   }
   // };
+
+  const dispatch = useDispatch();
 
   const productAddedSuccessfully = useCallback(() => {
     console.log("this is from parent");
@@ -70,9 +82,22 @@ const HomePage = () => {
 
   //unmounting phase
   useEffect(() => {
+    let mounted = true;
+    // Direct fetch to verify network from browser
+    (async () => {
+      try {
+        const res = await fetch("https://dummyjson.com/products");
+        const json = await res.json();
+        if (mounted) {
+          setDirectFetchCount(json?.products?.length ?? 0);
+          setDirectProducts(json?.products ?? []);
+        }
+      } catch (err) {
+        if (mounted) setDirectFetchCount(-1);
+      }
+    })();
     return () => {
-      console.log("component will unmount");
-      clearInterval();
+      mounted = false;
     };
   }, []);
 
@@ -88,6 +113,21 @@ const HomePage = () => {
     //   });
     // }
   }, [products]);
+
+  // If products empty, try refetching once
+  useEffect(() => {
+    if (!loading && products?.length === 0) {
+      refetch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Manually dispatch the RTK Query initiate action once to ensure baseQuery is invoked
+  useEffect(() => {
+    dispatch(productsApi.endpoints.getAllProducts.initiate());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   console.log(productsApi, "this is product api");
   return (
     <div className="home-page">
@@ -97,11 +137,23 @@ const HomePage = () => {
       {/* {productAdded && <p>Product Added Successfully</p>} */}
       <input value="same" onChange={handleChange} />
       {/* <p ref={ref}></p> */}
+      <div className="debug-info" style={{ marginTop: 12 }}>
+        <strong>Debug:</strong>
+        <div>isLoading: {String(loading)}</div>
+        <div>isError: {String(isError)}</div>
+        <div>products count: {products?.length ?? 0}</div>
+        <div>
+          direct fetch count:{" "}
+          {directFetchCount === null ? "..." : directFetchCount}
+        </div>
+        {isError && <pre style={{ color: "red" }}>{JSON.stringify(error)}</pre>}
+      </div>
+
       {loading ? (
         <p>Loading...</p>
       ) : (
         <div className="products-grid">
-          {products?.map((product) => (
+          {(products?.length ? products : directProducts)?.map((product) => (
             <ProductCard
               key={product.id}
               product={product}

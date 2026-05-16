@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+
 import { useCreateProductMutation } from "../../../../redux/api/products";
 import "./style.css";
 
@@ -10,8 +11,7 @@ const AddProduct = () => {
   const [success, setSuccess] = useState("");
 
   // RTK Query - Create Product Mutation from DummyJSON API
-  const [createProductMutation, response] = useCreateProductMutation();
-  const { data, isLoading } = response;
+  const [createProductMutation] = useCreateProductMutation();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -108,8 +108,9 @@ const AddProduct = () => {
       // RTK Query - Create product using DummyJSON API
       try {
         const response = await createProductMutation(productData).unwrap();
-        console.log("Product added successfully:", response);
+        console.log("✓ Product added successfully:", response);
         setSuccess("Product added successfully!");
+
         setFormData({
           title: "",
           description: "",
@@ -132,7 +133,7 @@ const AddProduct = () => {
           navigate("/admin/products");
         }, 2000);
       } catch (rtqError) {
-        console.error("RTK Query error adding product:", rtqError);
+        console.error("✗ RTK Query error adding product:", rtqError);
         setError(
           rtqError?.data?.message || "Failed to add product. Please try again."
         );

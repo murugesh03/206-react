@@ -4,11 +4,11 @@
  */
 
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { baseQueryWithAuth } from "./config";
+import { axiosBaseQueryWithAuth } from "./config";
 
 export const fileUploadApi = createApi({
   reducerPath: "fileUploadApi",
-  baseQuery: baseQueryWithAuth,
+  baseQuery: axiosBaseQueryWithAuth,
   endpoints: (builder) => ({
     /**
      * Upload product image

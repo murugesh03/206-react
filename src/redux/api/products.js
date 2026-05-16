@@ -1,14 +1,26 @@
 /**
- * Products API - RTK Query
+ * Products API - RTK Query with Axios
  * Endpoints for product operations (external API - dummyjson.com)
  */
 
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { externalBaseQuery } from "./config";
+import { axiosBaseQuery, externalAxiosInstance } from "./config";
+
+const normalizeApiResponse = (response) => {
+  if (typeof response === "string") {
+    try {
+      return JSON.parse(response);
+    } catch (error) {
+      console.warn("Unexpected string response from products API:", response);
+      return null;
+    }
+  }
+  return response;
+};
 
 export const productsApi = createApi({
   reducerPath: "productsApi",
-  baseQuery: externalBaseQuery,
+  baseQuery: axiosBaseQuery(externalAxiosInstance),
   tagTypes: ["Products", "ProductsByCategory", "SearchResults"],
   endpoints: (builder) => ({
     /**
@@ -17,16 +29,28 @@ export const productsApi = createApi({
      */
     getAllProducts: builder.query({
       query: () => "/products",
-      providesTags: (result) =>
-        result
+      // Ensure product prices are normalized and add displayPrice locally
+      transformResponse: (response) => {
+        const normalizedResponse = normalizeApiResponse(response);
+        const items =
+          normalizedResponse?.products ??
+          (Array.isArray(normalizedResponse) ? normalizedResponse : []);
+        const formatted = items.map((p) => ({
+          ...p,
+          price: Number(p.price),
+          displayPrice: `$${Number(p.price).toFixed(2)}`
+        }));
+        return { ...(normalizedResponse || {}), products: formatted };
+      },
+      providesTags: (result) => {
+        const items = result?.products ?? (Array.isArray(result) ? result : []);
+        return items.length
           ? [
-              ...result.products.map(({ id }) => ({
-                type: "Products",
-                id
-              })),
+              ...items.map(({ id }) => ({ type: "Products", id })),
               { type: "Products", id: "LIST" }
             ]
-          : [{ type: "Products", id: "LIST" }]
+          : [{ type: "Products", id: "LIST" }];
+      }
     }),
 
     /**
@@ -36,6 +60,25 @@ export const productsApi = createApi({
      */
     getProductById: builder.query({
       query: (productId) => `/products/${productId}`,
+      // Normalize single product response so components can rely on consistent types
+      transformResponse: (response) => {
+        console.log(response, "this is getProductById response");
+        const normalizedResponse = normalizeApiResponse(response);
+        const item =
+          normalizedResponse && typeof normalizedResponse === "object"
+            ? normalizedResponse
+            : {};
+        const price = Number(item.price || 0);
+        const rating = Number(item.rating || 0);
+        const discountPercentage = Number(item.discountPercentage || 0);
+        return {
+          ...item,
+          price,
+          rating,
+          discountPercentage,
+          displayPrice: `$${price.toFixed(2)}`
+        };
+      },
       providesTags: (result, error, productId) => [
         { type: "Products", id: productId }
       ]

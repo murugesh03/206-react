@@ -62,18 +62,24 @@ const dataTransformMiddleware = (storeAPI) => (next) => (action) => {
   );
   console.log("%cAction type:", "color: #FF6B6B;", action.type);
 
+  // Avoid processing RTK Query/internal actions to prevent interfering with query lifecycle
+  if (action.type && action.type.startsWith(productsApi.reducerPath)) {
+    return next(action);
+  }
+
   // Transform cart actions - add timestamp
   if (action.type.startsWith("cart/")) {
     console.log(
       "%c  📦 Cart action detected - Adding metadata",
       "color: #FF8C42;"
     );
-    action.meta = {
+    const newMeta = {
       ...action.meta,
       timestamp: new Date().toISOString(),
       user: storeAPI.getState()?.auth?.user?.id || "anonymous"
     };
-    console.log("%c  ✓ Metadata added:", "color: #FF8C42;", action.meta);
+    action = { ...action, meta: newMeta };
+    console.log("%c  ✓ Metadata added:", "color: #FF8C42;", newMeta);
   }
 
   // Transform product data - ensure prices are numbers
@@ -83,12 +89,12 @@ const dataTransformMiddleware = (storeAPI) => (next) => (action) => {
       "color: #4ECDC4;"
     );
     console.log("%c  Original price:", "color: #4ECDC4;", action.payload.price);
-    action.payload.price = parseFloat(action.payload.price);
-    console.log(
-      "%c  Converted price:",
-      "color: #4ECDC4;",
-      action.payload.price
-    );
+    const newPayload = {
+      ...action.payload,
+      price: parseFloat(action.payload.price)
+    };
+    action = { ...action, payload: newPayload };
+    console.log("%c  Converted price:", "color: #4ECDC4;", newPayload.price);
   }
 
   console.log(
@@ -109,6 +115,11 @@ const productPriceFormatterMiddleware = (storeAPI) => (next) => (action) => {
     "color: #95E1D3; font-weight: bold; font-size: 12px;"
   );
 
+  // Do not run on RTK Query/internal actions
+  if (action.type && action.type.startsWith(productsApi.reducerPath)) {
+    return next(action);
+  }
+
   // Format prices in product-related actions
   if (
     (action.type.includes("getAllProducts") ||
@@ -116,7 +127,7 @@ const productPriceFormatterMiddleware = (storeAPI) => (next) => (action) => {
     action.payload?.products
   ) {
     console.log(
-      "%c  💵 Formatting product prices",
+      "%c  💵 Formatting product prices (non-mutating)",
       "color: #38ADA9; font-weight: bold;"
     );
     console.log(
@@ -125,11 +136,12 @@ const productPriceFormatterMiddleware = (storeAPI) => (next) => (action) => {
       action.payload.products.length
     );
 
-    action.payload.products = action.payload.products.map((product) => {
+    // Create a new products array and a new payload to avoid mutating RTK Query internals
+    const formattedProducts = action.payload.products.map((product) => {
       const formattedProduct = {
         ...product,
-        price: parseFloat(product.price).toFixed(2),
-        displayPrice: `$${parseFloat(product.price).toFixed(2)}`
+        price: Number(product.price),
+        displayPrice: `$${Number(product.price).toFixed(2)}`
       };
       console.log(
         "%c  ✓ Formatted:",
@@ -140,9 +152,13 @@ const productPriceFormatterMiddleware = (storeAPI) => (next) => (action) => {
     });
 
     console.log(
-      "%c  ✓ All prices formatted successfully",
+      "%c  ✓ All prices formatted successfully (created new payload)",
       "color: #38ADA9; font-weight: bold;"
     );
+
+    const newPayload = { ...action.payload, products: formattedProducts };
+    const newAction = { ...action, payload: newPayload };
+    return next(newAction);
   }
 
   console.log(
@@ -248,6 +264,11 @@ const cartValidationMiddleware = (storeAPI) => (next) => (action) => {
   );
   console.log("%cAction type:", "color: #9B59B6;", action.type);
 
+  // Skip RTK Query/internal actions
+  if (action.type && action.type.startsWith(productsApi.reducerPath)) {
+    return next(action);
+  }
+
   if (action.type === "cart/addItem" && action.payload) {
     const { quantity, price, title } = action.payload;
 
@@ -267,7 +288,8 @@ const cartValidationMiddleware = (storeAPI) => (next) => (action) => {
         quantity
       );
       console.warn("%c  🔧 Correcting to 1", "color: #F39C12;");
-      action.payload.quantity = 1;
+      const newPayload = { ...action.payload, quantity: 1 };
+      action = { ...action, payload: newPayload };
     } else {
       console.log("%c  ✓ Quantity valid", "color: #27AE60;");
     }
@@ -330,14 +352,14 @@ export const store = configureStore({
       wishlistApi.middleware,
       contactApi.middleware,
       adminApi.middleware,
-      fileUploadApi.middleware,
+      fileUploadApi.middleware
 
       // Custom middleware for data modification
-      loggingMiddleware,
-      productPriceFormatterMiddleware,
-      dataTransformMiddleware,
-      authTokenMiddleware,
-      errorTrackingMiddleware,
-      cartValidationMiddleware
+      // loggingMiddleware,
+      // productPriceFormatterMiddleware,
+      // dataTransformMiddleware,
+      // authTokenMiddleware,
+      // errorTrackingMiddleware,
+      // cartValidationMiddleware
     )
 });

@@ -1,14 +1,14 @@
 /**
- * Cart API - RTK Query
+ * Cart API - RTK Query with Axios
  * Endpoints for shopping cart operations (add, remove, update, clear)
  */
 
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { baseQueryWithAuth } from "./config";
+import { axiosBaseQueryWithAuth } from "./config";
 
 export const cartApi = createApi({
   reducerPath: "cartApi",
-  baseQuery: baseQueryWithAuth,
+  baseQuery: axiosBaseQueryWithAuth,
   endpoints: (builder) => ({
     /**
      * Get user's cart

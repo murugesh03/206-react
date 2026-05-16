@@ -4,11 +4,11 @@
  */
 
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { baseQueryWithAuth } from "./config";
+import { axiosBaseQueryWithAuth } from "./config";
 
 export const wishlistApi = createApi({
   reducerPath: "wishlistApi",
-  baseQuery: baseQueryWithAuth,
+  baseQuery: axiosBaseQueryWithAuth,
   endpoints: (builder) => ({
     /**
      * Get user's wishlist
