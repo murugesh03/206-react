@@ -1,32 +1,31 @@
-import { Navigate, NavLink, Outlet } from "react-router";
-import { useSelector } from "react-redux";
+import { NavLink, Outlet } from "react-router";
 // import { useAuth } from "../../../hooks/auth";
 import "./style.css";
 
 const AdminLayout = () => {
   // const { isAuthenticated, user, loading } = useAuth();
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  const user = useSelector((state) => state.auth.user);
-  const loading = useSelector((state) => state.auth.loading);
+  // const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  // const user = useSelector((state) => state.auth.user);
+  // const loading = useSelector((state) => state.auth.loading);
 
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner">Loading...</div>
-      </div>
-    );
-  }
+  // // Show loading state while checking authentication
+  // if (loading) {
+  //   return (
+  //     <div className="loading-container">
+  //       <div className="spinner">Loading...</div>
+  //     </div>
+  //   );
+  // }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // // Redirect to login if not authenticated
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
-  // Check if user has admin role
-  if (user?.role !== "admin") {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  // // Check if user has admin role
+  // if (user?.role !== "admin") {
+  //   return <Navigate to="/unauthorized" replace />;
+  // }
 
   return (
     <div className="admin-layout">

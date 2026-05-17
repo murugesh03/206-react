@@ -19,26 +19,29 @@ import AllProducts from "../components/pages/shop/AllProducts";
 import Category from "../components/pages/shop/Category";
 import SignupPage from "../components/pages/signup";
 import UnauthorizedPage from "../components/pages/unauthorized";
+import withAuth from "../HOC/AuthAdminHoc";
 import ProtectedRoute from "./ProtectedRoute";
 
 // DEMO: Lazy load ProductDetail with artificial 2s delay to make Suspense fallback visible
 // In production, remove the Promise wrapper: lazy(() => import("../components/pages/shop/ProductDetail"))
-const ProductDetail = lazy(() =>
-  new Promise((resolve) =>
-    setTimeout(
-      () => resolve(import("../components/pages/shop/ProductDetail")),
-      2000
+const ProductDetail = lazy(
+  () =>
+    new Promise((resolve) =>
+      setTimeout(
+        () => resolve(import("../components/pages/shop/ProductDetail")),
+        2000
+      )
     )
-  )
 );
 
 const AdminProductsLazy = lazy(
   () => import("../components/pages/admin/Products")
 );
 const AdminUsersLazy = lazy(() => import("../components/pages/admin/Users"));
-
 function RoutePage() {
   const adminRoles = ["admin"];
+  //HOC component example
+  const AuthenticatedAdminLayout = withAuth(AdminLayout);
   return (
     <Routes>
       {/* Main Routes */}
@@ -62,7 +65,9 @@ function RoutePage() {
       <Route
         path="product/:productId"
         element={
-          <Suspense fallback={<div className="loading-spinner">Loading product...</div>}>
+          <Suspense
+            fallback={<div className="loading-spinner">Loading product...</div>}
+          >
             <ProductDetail />
           </Suspense>
         }
@@ -91,7 +96,7 @@ function RoutePage() {
       </Route>
 
       {/* Protected Admin Routes */}
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin" element={<AuthenticatedAdminLayout />}>
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route
           path="products"
