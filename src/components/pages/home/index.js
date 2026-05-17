@@ -137,17 +137,6 @@ const HomePage = () => {
       {/* {productAdded && <p>Product Added Successfully</p>} */}
       <input value="same" onChange={handleChange} />
       {/* <p ref={ref}></p> */}
-      <div className="debug-info" style={{ marginTop: 12 }}>
-        <strong>Debug:</strong>
-        <div>isLoading: {String(loading)}</div>
-        <div>isError: {String(isError)}</div>
-        <div>products count: {products?.length ?? 0}</div>
-        <div>
-          direct fetch count:{" "}
-          {directFetchCount === null ? "..." : directFetchCount}
-        </div>
-        {isError && <pre style={{ color: "red" }}>{JSON.stringify(error)}</pre>}
-      </div>
 
       {loading ? (
         <p>Loading...</p>
