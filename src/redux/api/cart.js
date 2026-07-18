@@ -29,7 +29,7 @@ export const cartApi = createApi({
       query: ({ userId, cartItem }) => ({
         url: `/users/${userId}/cart`,
         method: "POST",
-        body: cartItem
+        data: cartItem
       }),
       invalidatesTags: (result, error, { userId }) => [
         { type: "Cart", id: userId }
@@ -60,7 +60,7 @@ export const cartApi = createApi({
       query: ({ userId, itemId, quantity }) => ({
         url: `/users/${userId}/cart/${itemId}`,
         method: "PUT",
-        body: { quantity }
+        data: { quantity }
       }),
       invalidatesTags: (result, error, { userId }) => [
         { type: "Cart", id: userId }

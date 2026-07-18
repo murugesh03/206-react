@@ -59,8 +59,10 @@ export {
   ordersApi,
   useCancelOrderMutation,
   useCreateOrderMutation,
+  useCreatePaymentOrderMutation,
   useGetOrderByIdQuery,
-  useGetUserOrdersQuery
+  useGetUserOrdersQuery,
+  useVerifyPaymentMutation
 } from "./orders";
 
 // Export Cart API

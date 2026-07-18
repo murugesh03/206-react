@@ -4,7 +4,7 @@
  */
 
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { axiosBaseQuery, externalAxiosInstance } from "./config";
+import { axiosBaseQueryWithAuth, backendAxiosInstance } from "./config";
 
 const normalizeApiResponse = (response) => {
   if (typeof response === "string") {
@@ -20,7 +20,7 @@ const normalizeApiResponse = (response) => {
 
 export const productsApi = createApi({
   reducerPath: "productsApi",
-  baseQuery: axiosBaseQuery(externalAxiosInstance),
+  baseQuery: axiosBaseQueryWithAuth,
   tagTypes: ["Products", "ProductsByCategory", "SearchResults"],
   endpoints: (builder) => ({
     /**
@@ -28,7 +28,7 @@ export const productsApi = createApi({
      * @returns {Promise} List of all products
      */
     getAllProducts: builder.query({
-      query: () => "/products",
+      query: () => ({ url: "/products", method: "GET" }),
       // Ensure product prices are normalized and add displayPrice locally
       transformResponse: (response) => {
         const normalizedResponse = normalizeApiResponse(response);
@@ -59,15 +59,17 @@ export const productsApi = createApi({
      * @returns {Promise} Single product details
      */
     getProductById: builder.query({
-      query: (productId) => `/products/${productId}`,
+      query: (productId) => ({ url: `/products/${productId}`, method: "GET" }),
       // Normalize single product response so components can rely on consistent types
       transformResponse: (response) => {
         console.log(response, "this is getProductById response");
         const normalizedResponse = normalizeApiResponse(response);
         const item =
-          normalizedResponse && typeof normalizedResponse === "object"
-            ? normalizedResponse
-            : {};
+          normalizedResponse?.product && typeof normalizedResponse.product === "object"
+            ? normalizedResponse.product
+            : normalizedResponse && typeof normalizedResponse === "object"
+              ? normalizedResponse
+              : {};
         const price = Number(item.price || 0);
         const rating = Number(item.rating || 0);
         const discountPercentage = Number(item.discountPercentage || 0);
@@ -90,7 +92,7 @@ export const productsApi = createApi({
      * @returns {Promise} Products in the specified category
      */
     getProductsByCategory: builder.query({
-      query: (category) => `/products/category/${category}`,
+      query: (category) => ({ url: `/products/category/${category}`, method: "GET" }),
       providesTags: (result, error, category) => [
         { type: "ProductsByCategory", id: category }
       ]
@@ -102,7 +104,7 @@ export const productsApi = createApi({
      * @returns {Promise} Search results
      */
     searchProducts: builder.query({
-      query: (searchQuery) => `/products/search?q=${searchQuery}`,
+      query: (searchQuery) => ({ url: `/products/search?q=${searchQuery}`, method: "GET" }),
       providesTags: ["SearchResults"]
     }),
 
@@ -115,7 +117,7 @@ export const productsApi = createApi({
       query: (productData) => ({
         url: "/products/add",
         method: "POST",
-        body: productData
+        data: productData
       }),
       invalidatesTags: [{ type: "Products", id: "LIST" }]
     }),
@@ -129,7 +131,7 @@ export const productsApi = createApi({
       query: ({ productId, productData }) => ({
         url: `/products/${productId}`,
         method: "PUT",
-        body: productData
+        data: productData
       }),
       invalidatesTags: (result, error, { productId }) => [
         { type: "Products", id: "LIST" },

@@ -1,8 +1,7 @@
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import "../../../components/organisms/productcard/style.css";
-// DEPRECATED: Old context API - kept for reference
-// import { CartContext } from "../../../context/cart/CartContext";
 import { useGetAllProductsQuery } from "../../../redux/api/products";
+import { useAddToCartMutation } from "../../../redux/api/cart";
 import { addToCart } from "../../../redux/slices/cart/cartSlice";
 import "./style.css";
 
@@ -10,9 +9,11 @@ const Products = () => {
   // DEPRECATED: Old context API - kept for reference
   // const { addToCart } = useContext(CartContext);
   const dispatch = useDispatch();
+  const userId = useSelector((state) => state.auth?.user?.id);
 
   // RTK Query - NEW APPROACH
   const { data: productsData, isLoading, error } = useGetAllProductsQuery();
+  const [addToCartMutation] = useAddToCartMutation();
   const products = productsData?.products || [];
 
   // DEPRECATED: Hard-coded products (kept for reference)
@@ -47,19 +48,32 @@ const Products = () => {
         {products.map((product) => (
           <div key={product.id} className="product-card">
             <div className="product-image">
-              <img src={product.image} alt={product.name} />
+              <img
+                src={product.thumbnail || product.imageUrl || product.images?.[0]}
+                alt={product.title || product.name}
+              />
             </div>
             <div className="product-info">
-              <h3>{product.name}</h3>
+              <h3>{product.title || product.name}</h3>
               <p className="product-description">{product.description}</p>
               <div className="product-footer">
                 <span className="product-price">${product.price}</span>
 
                 <button
                   className="add-to-cart-btn"
-                  onClick={() => {
-                    // addToCart(product);
-                    dispatch(addToCart(product));
+                  onClick={async () => {
+                    if (userId) {
+                      await addToCartMutation({
+                        userId,
+                        cartItem: {
+                          productId: product.id,
+                          quantity: 1,
+                          price: product.price
+                        }
+                      }).unwrap();
+                    } else {
+                      dispatch(addToCart(product));
+                    }
                   }}
                 >
                   Add to Cart

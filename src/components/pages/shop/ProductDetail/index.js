@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 // DEPRECATED: Old custom fetch hook - kept for reference
 // import { useFetch } from "../../../../hooks/fetch";
+import { useAddToCartMutation } from "../../../../redux/api/cart";
 import { useGetProductByIdQuery } from "../../../../redux/api/products";
 import { addToCart } from "../../../../redux/slices/cart/cartSlice";
 import "../shop-enhanced.css";
@@ -24,19 +25,18 @@ const ProductDetail = () => {
   console.log(navigate, "this is navigatet");
   // const { addToCart } = useContext(CartContext);
   const dispatch = useDispatch();
+  const userId = useSelector((state) => state.auth?.user?.id);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
   // RTK Query - NEW APPROACH using useGetProductByIdQuery
   // Ensure we only call the query when a valid id exists.
-  const numericId = productId ? Number(productId) : undefined;
-  console.log("useGetProductByIdQuery -> numericId:", numericId);
   const {
     data: product,
     isLoading: loading,
     error
-  } = useGetProductByIdQuery(numericId, { skip: !numericId });
+  } = useGetProductByIdQuery(productId, { skip: !productId });
   console.log(product, "product");
   // Debug: log RTK Query state and perform a direct fetch to verify network
   // useEffect(() => {
@@ -63,11 +63,30 @@ const ProductDetail = () => {
   //   error
   // } = useFetch(`https://dummyjson.com/products/${productId}`);
 
-  const handleAddToCart = () => {
-    // addToCart({ ...product, quantity });
-    dispatch(addToCart({ ...product, quantity }));
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
+  const [addToCartMutation] = useAddToCartMutation();
+
+  const handleAddToCart = async () => {
+    try {
+      if (userId) {
+        await addToCartMutation({
+          userId,
+          cartItem: {
+            productId: product.id,
+            quantity,
+            price: product.price
+          }
+        }).unwrap();
+      } else {
+        dispatch(addToCart({ ...product, quantity }));
+      }
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      dispatch(addToCart({ ...product, quantity }));
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    }
   };
 
   const handleQuantityChange = (e) => {

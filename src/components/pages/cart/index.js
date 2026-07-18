@@ -1,7 +1,5 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-// DEPRECATED: Old context API - kept for reference
-// import { CartContext } from "../../../context/cart/CartContext";
 import { useCounter } from "../../../hooks/count";
 import {
   useClearCartMutation,
@@ -10,6 +8,13 @@ import {
   useUpdateCartQuantityMutation
 } from "../../../redux/api/cart";
 import {
+  useCreateOrderMutation,
+  useCreatePaymentOrderMutation,
+  useVerifyPaymentMutation
+} from "../../../redux/api/orders";
+import {
+  clearCart,
+  loadCart,
   removeFromCart,
   updateQuantity
 } from "../../../redux/slices/cart/cartSlice";
@@ -18,6 +23,7 @@ import "./style.css"; // We'll create this CSS file
 const Cart = (props) => {
   // Get userId from Redux auth state
   const userId = useSelector((state) => state.auth?.user?.id);
+  const authUser = useSelector((state) => state.auth?.user);
 
   // DEPRECATED: Old context API - kept for reference
   // const { cartItems, removeFromCart, updateQuantity, getTotalPrice } = useContext(CartContext);
@@ -34,13 +40,19 @@ const Cart = (props) => {
   const [removeFromCartMutation] = useRemoveFromCartMutation();
   const [updateCartQuantityMutation] = useUpdateCartQuantityMutation();
   const [clearCartMutation] = useClearCartMutation();
+  const [createOrderMutation] = useCreateOrderMutation();
+  const [createPaymentOrderMutation] = useCreatePaymentOrderMutation();
+  const [verifyPaymentMutation] = useVerifyPaymentMutation();
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  useEffect(() => {
+    if (userId && cartData?.cart?.items) {
+      dispatch(loadCart(cartData.cart.items));
+    }
+  }, [cartData, dispatch, userId]);
 
   const totalPrice = useMemo(
-    () =>
-      cartItems.reduce((total, item) => {
-        console.log("this is caluclated");
-        return total + item.quantity;
-      }, 0),
+    () => cartItems.reduce((totalItems, item) => totalItems + item.quantity, 0),
     [cartItems]
   );
 
@@ -78,6 +90,170 @@ const Cart = (props) => {
     }
   };
 
+  const handleCheckout = async () => {
+    if (!userId || cartItems.length === 0) {
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      const createdOrder = await createOrderMutation({
+        userId,
+        items: cartItems.map((item) => ({
+          productId: item.id || item.productId,
+          quantity: item.quantity,
+          price: Number(item.price || 0)
+        })),
+        total: Number(total || 0),
+        shippingAddress: "Payment test address",
+        paymentMethod: "Razorpay"
+      }).unwrap();
+
+      const orderId =
+        createdOrder?.order?._id ||
+        createdOrder?.order?.id ||
+        createdOrder?._id ||
+        createdOrder?.id;
+      if (!orderId) {
+        throw new Error("Order ID was not returned by the backend.");
+      }
+
+      const paymentOrder = await createPaymentOrderMutation({
+        orderId,
+        amount: Math.round(Number(total || 0) * 100),
+        currency: "INR"
+      }).unwrap();
+
+      const razorpayOrder = paymentOrder?.order || paymentOrder;
+      const scriptId = "razorpay-checkout-script";
+      const existingScript = document.getElementById(scriptId);
+
+      if (!existingScript) {
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        script.onload = () => {
+          const options = {
+            key: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_demo",
+            amount:
+              razorpayOrder?.amount || Math.round(Number(total || 0) * 100),
+            currency: razorpayOrder?.currency || "INR",
+            name: "206 Shop",
+            description: `Payment for order ${orderId}`,
+            order_id: razorpayOrder?.id,
+            handler: async (response) => {
+              try {
+                await verifyPaymentMutation({
+                  orderId,
+                  paymentDetails: {
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature
+                  }
+                }).unwrap();
+                await clearCartMutation(userId).unwrap();
+                dispatch(clearCart());
+                window.alert(
+                  "Payment successful. Your order has been confirmed."
+                );
+              } catch (error) {
+                console.error("Error verifying payment:", error);
+                window.alert(
+                  "Payment verification failed. Please contact support."
+                );
+              } finally {
+                setIsProcessingPayment(false);
+              }
+            },
+            prefill: {
+              name: authUser?.name || "Customer",
+              email: authUser?.email || "",
+              contact: authUser?.contact || ""
+            },
+            theme: { color: "#3399cc" },
+            modal: {
+              ondismiss: () => setIsProcessingPayment(false)
+            }
+          };
+
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        };
+        script.onerror = () => {
+          setIsProcessingPayment(false);
+          window.alert("Razorpay script could not be loaded.");
+        };
+        document.body.appendChild(script);
+      } else if (window.Razorpay) {
+        const options = {
+          key: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_demo",
+          amount: razorpayOrder?.amount || Math.round(Number(total || 0) * 100),
+          currency: razorpayOrder?.currency || "INR",
+          name: "206 Shop",
+          description: `Payment for order ${orderId}`,
+          order_id: razorpayOrder?.id,
+          handler: async (response) => {
+            try {
+              await verifyPaymentMutation({
+                orderId,
+                paymentDetails: {
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature
+                }
+              }).unwrap();
+              await clearCartMutation(userId).unwrap();
+              dispatch(clearCart());
+              window.alert(
+                "Payment successful. Your order has been confirmed."
+              );
+            } catch (error) {
+              console.error("Error verifying payment:", error);
+              window.alert(
+                "Payment verification failed. Please contact support."
+              );
+            } finally {
+              setIsProcessingPayment(false);
+            }
+          },
+          prefill: {
+            name: authUser?.name || "Customer",
+            email: authUser?.email || "",
+            contact: authUser?.contact || ""
+          },
+          theme: { color: "#3399cc" },
+          modal: {
+            ondismiss: () => setIsProcessingPayment(false)
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else {
+        setIsProcessingPayment(false);
+        window.alert("Razorpay is not available right now.");
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      setIsProcessingPayment(false);
+      window.alert("Checkout failed. Please try again.");
+    }
+  };
+
+  const handleClearCart = async () => {
+    try {
+      if (userId) {
+        await clearCartMutation(userId).unwrap();
+      } else {
+        dispatch(clearCart());
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+    }
+  };
+
   const handleRemoveItem = async (id) => {
     try {
       // RTK Query - NEW APPROACH using useRemoveFromCartMutation
@@ -104,57 +280,79 @@ const Cart = (props) => {
       ) : (
         <div className="cart-content">
           <div className="cart-items">
-            {cartItems.map((item) => (
-              <div key={item.id} className="cart-item">
-                <div className="item-image">
-                  <img src={item.thumbnail} alt={item.title} />
-                </div>
-                <div className="item-details">
-                  <h3>{item.title}</h3>
-                  <p>{item.description.substring(0, 100)}...</p>
-                  <div className="item-price">
-                    <span className="price">${item.price.toFixed(2)}</span>
-                    {item.discountPercentage > 0 && (
-                      <span className="original-price">
-                        $
-                        {(
-                          item.price /
-                          (1 - item.discountPercentage / 100)
-                        ).toFixed(2)}
+            {cartItems.map((item) => {
+              const descriptionText =
+                typeof item.description === "string"
+                  ? item.description
+                  : item.description
+                    ? String(item.description)
+                    : "";
+
+              return (
+                <div key={item.id || item.productId} className="cart-item">
+                  <div className="item-image">
+                    <img src={item.thumbnail} alt={item.title} />
+                  </div>
+                  <div className="item-details">
+                    <h3>{item.title}</h3>
+                    <p>{descriptionText.substring(0, 100)}...</p>
+                    <div className="item-price">
+                      <span className="price">
+                        ${Number(item.price || 0).toFixed(2)}
                       </span>
-                    )}
-                  </div>
-                  <div className="quantity-controls">
+                      {item.discountPercentage > 0 && (
+                        <span className="original-price">
+                          $
+                          {(
+                            item.price /
+                            (1 - item.discountPercentage / 100)
+                          ).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="quantity-controls">
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(
+                            item.id || item.productId,
+                            item.quantity - 1
+                          )
+                        }
+                        className="quantity-btn"
+                      >
+                        -
+                      </button>
+                      <span className="quantity">{item.quantity}</span>
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(
+                            item.id || item.productId,
+                            item.quantity + 1
+                          )
+                        }
+                        className="quantity-btn"
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
                       onClick={() =>
-                        handleQuantityChange(item.id, item.quantity - 1)
+                        handleRemoveItem(item.id || item.productId)
                       }
-                      className="quantity-btn"
+                      className="remove-btn"
                     >
-                      -
-                    </button>
-                    <span className="quantity">{item.quantity}</span>
-                    <button
-                      onClick={() =>
-                        handleQuantityChange(item.id, item.quantity + 1)
-                      }
-                      className="quantity-btn"
-                    >
-                      +
+                      Remove
                     </button>
                   </div>
-                  <button
-                    onClick={() => handleRemoveItem(item.id)}
-                    className="remove-btn"
-                  >
-                    Remove
-                  </button>
+                  <div className="item-total">
+                    $
+                    {(
+                      Number(item.price || 0) * Number(item.quantity || 0)
+                    ).toFixed(2)}
+                  </div>
                 </div>
-                <div className="item-total">
-                  ${(item.price * item.quantity).toFixed(2)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="cart-summary">
             <h2>Cart Summary</h2>
@@ -165,9 +363,18 @@ const Cart = (props) => {
             <div className="summary-row total">
               <span>Total Price:</span>
               {/* <span>${getTotalPrice().toFixed(2)}</span> */}
-              <span>${total.toFixed(2)}</span>
+              <span>${Number(total || 0).toFixed(2)}</span>
             </div>
-            <button className="checkout-btn">Proceed to Checkout</button>
+            <button
+              className="checkout-btn"
+              onClick={handleCheckout}
+              disabled={isProcessingPayment}
+            >
+              {isProcessingPayment ? "Processing..." : "Proceed to Checkout"}
+            </button>
+            <button className="remove-btn" onClick={handleClearCart}>
+              Clear Cart
+            </button>
           </div>
         </div>
       )}

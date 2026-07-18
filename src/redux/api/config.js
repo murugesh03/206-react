@@ -11,7 +11,7 @@ import axios from "axios";
 
 export const PRODUCTS_API_BASE = "https://dummyjson.com";
 export const BACKEND_API_BASE =
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+  process.env.REACT_APP_API_URL || "http://localhost:3000/api";
 
 // ============================================
 // AXIOS INSTANCES
@@ -145,7 +145,7 @@ export const axiosBaseQueryWithAuth = async (
   try {
     // Get token from Redux state
     const state = api.getState();
-    const token = state?.auth?.token;
+    const token = state?.auth?.authToken || state?.auth?.token;
 
     const config = {
       url,

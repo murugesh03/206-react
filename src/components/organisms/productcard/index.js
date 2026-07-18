@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { useAddToCartMutation } from "../../../redux/api/cart";
+import { useAddToWishlistMutation } from "../../../redux/api/wishlist";
 import { addToCart } from "../../../redux/slices/cart/cartSlice";
 import "./style.css";
-import { useAddToWishlistMutation } from "../../../redux/api/wishlist";
 
 const ProductCard = React.memo(({ product, addedSuccessfully }) => {
   const navigate = useNavigate();
@@ -89,7 +89,12 @@ const ProductCard = React.memo(({ product, addedSuccessfully }) => {
       <div className="product-info">
         <h3 className="product-title">{product.title}</h3>
         <p className="product-description">
-          {product.description.substring(0, 100)}...
+          {typeof product.description === "string"
+            ? product.description.substring(0, 100)
+            : product.description
+              ? String(product.description).substring(0, 100)
+              : "No description available"}
+          ...
         </p>
         <div className="product-rating">
           <span className="stars">

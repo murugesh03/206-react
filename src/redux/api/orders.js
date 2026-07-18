@@ -59,6 +59,34 @@ export const ordersApi = createApi({
       invalidatesTags: (result, error, orderId) => [
         { type: "Order", id: orderId }
       ]
+    }),
+
+    /**
+     * Create a Razorpay payment order for checkout
+     */
+    createPaymentOrder: builder.mutation({
+      query: ({ orderId, amount, currency = "INR" }) => ({
+        url: `/orders/${orderId}/payment/create`,
+        method: "POST",
+        body: { amount, currency }
+      }),
+      invalidatesTags: (result, error, { orderId }) => [
+        { type: "Order", id: orderId }
+      ]
+    }),
+
+    /**
+     * Verify Razorpay payment callback
+     */
+    verifyPayment: builder.mutation({
+      query: ({ orderId, paymentDetails }) => ({
+        url: `/orders/${orderId}/payment/verify`,
+        method: "POST",
+        body: paymentDetails
+      }),
+      invalidatesTags: (result, error, { orderId }) => [
+        { type: "Order", id: orderId }
+      ]
     })
   })
 });
@@ -67,5 +95,7 @@ export const {
   useGetUserOrdersQuery,
   useGetOrderByIdQuery,
   useCreateOrderMutation,
-  useCancelOrderMutation
+  useCancelOrderMutation,
+  useCreatePaymentOrderMutation,
+  useVerifyPaymentMutation
 } = ordersApi;
